@@ -25,7 +25,7 @@ There is **no test runner yet** (testing is planned for Phase 5). When adding te
 This project follows a **mandatory phased build** with an approval gate. Do not jump ahead to a later phase's modules without explicit user go-ahead.
 
 - **Phase 1 (done):** foundation — setup, Supabase + Auth, schema + RLS, theme, app shell.
-- **Phase 2:** Expenses, Income, Categories, Dashboard data, Search & filtering.
+- **Phase 2 (done):** Expenses, Income, Categories (full CRUD), live Dashboard data, search & filtering, FX auto-fetch.
 - **Phase 3:** Budgets, Savings goals, Loans, Subscriptions.
 - **Phase 4:** Reports & charts, Import (CSV/Excel/PDF), multi-currency refinement.
 - **Phase 5:** Offline PWA, performance, testing, UX polish.
@@ -42,7 +42,11 @@ This project follows a **mandatory phased build** with an approval gate. Do not 
 
 **Auth** ([src/features/auth/](src/features/auth/)): `AuthProvider` wraps Supabase auth (password, OTP magic-link, signup) and exposes `useAuth()`. Sessions persist and auto-refresh. `useInactivityLogout` signs the user out after `VITE_INACTIVITY_TIMEOUT_MINUTES`.
 
-**Data access:** all reads/writes go through the single Supabase client ([src/shared/lib/supabase.ts](src/shared/lib/supabase.ts)). Security is enforced by **Row Level Security in the database, not the client** — the anon key alone grants nothing. Use TanStack Query (configured in `src/app/queryClient.ts`) for server state.
+**Data access:** all reads/writes go through the single Supabase client ([src/shared/lib/supabase.ts](src/shared/lib/supabase.ts)). Security is enforced by **Row Level Security in the database, not the client** — the anon key alone grants nothing. Use TanStack Query (configured in `src/app/queryClient.ts`) for server state. Per-feature convention: each module has an `api.ts` (raw Supabase calls) + `hooks.ts` (TanStack Query wrappers). Mutations that affect totals invalidate both their own key and `['dashboard']`.
+
+**Money entry & FX:** monetary input uses the shared `CurrencyAmountField` ([src/features/fx/CurrencyAmountField.tsx](src/features/fx/CurrencyAmountField.tsx)). For non-base currencies it auto-fetches the rate *as of the transaction date* from Frankfurter ([src/features/fx/fxService.ts](src/features/fx/fxService.ts)), caches it in `exchange_rates`, but always lets the user override; the rate + `amount_base` are then frozen on the row. FX fetches never throw to the UI — on failure the field falls back to manual entry.
+
+**Schema↔types gotcha:** `Database` ([src/shared/types/database.ts](src/shared/types/database.ts)) wraps each table in a `TableDef` helper that adds the `Relationships: []` key and `Flatten`s the row `interface` — both are required for postgrest-js to recognize the schema (otherwise every table resolves to `never`). `Insertable` makes server-managed and nullable columns optional on insert.
 
 ## Critical invariants
 
@@ -56,4 +60,5 @@ This project follows a **mandatory phased build** with an approval gate. Do not 
 - **Theming:** never hardcode colors. Use the semantic Tailwind tokens (`bg`, `surface`, `surface-2`, `border`, `content`, `content-muted`, `brand`, `success`, `danger`, `warning`) which resolve to CSS variables defined per-theme in [src/index.css](src/index.css). Reusable classes: `.card`, `.input`, `.btn-primary`, `.btn-ghost`. Dark mode is class-based on `<html>`.
 - **Icons:** add to the inline set in [src/shared/components/Icon.tsx](src/shared/components/Icon.tsx) (no icon library is installed).
 - **Imports:** use the `@/` alias for `src/`.
-- **Forms:** React Hook Form + Zod.
+- **Forms:** React Hook Form + Zod for standalone forms (e.g. login). Modal CRUD forms (expense/income/category) use local `useState` + manual validation because they embed the async, self-managing `CurrencyAmountField`.
+- **Shared UI primitives:** `Modal`, `Toast` (via `useToast()`, provider in App tree), `Skeleton`, `EmptyState`, `FilterBar`, `StatCard`, `PageHeader`. Prefer these over bespoke versions.

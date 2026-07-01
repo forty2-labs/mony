@@ -24,6 +24,7 @@ export default {
         content: 'rgb(var(--content) / <alpha-value>)',
         'content-muted': 'rgb(var(--content-muted) / <alpha-value>)',
         brand: 'rgb(var(--brand) / <alpha-value>)',
+        'brand-2': 'rgb(var(--brand-2) / <alpha-value>)',
         'brand-fg': 'rgb(var(--brand-fg) / <alpha-value>)',
         success: 'rgb(var(--success) / <alpha-value>)',
         danger: 'rgb(var(--danger) / <alpha-value>)',
@@ -34,8 +35,17 @@ export default {
         '2xl': '1.25rem',
       },
       boxShadow: {
-        soft: '0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.06)',
-        'soft-lg': '0 2px 4px rgb(0 0 0 / 0.05), 0 16px 48px rgb(0 0 0 / 0.10)',
+        soft: '0 1px 2px rgb(0 0 0 / 0.04), 0 6px 20px rgb(0 0 0 / 0.05)',
+        'soft-lg': '0 2px 6px rgb(0 0 0 / 0.06), 0 18px 50px rgb(0 0 0 / 0.12)',
+      },
+      keyframes: {
+        'fade-up': {
+          '0%': { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-up': 'fade-up 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

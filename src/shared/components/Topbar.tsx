@@ -1,26 +1,37 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from './Icon';
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
 /**
- * App top bar: a (currently non-functional) global search affordance and the
- * theme control. Search wiring lands in Phase 2; the field is intentionally
- * disabled rather than absent so the layout is final.
+ * App top bar: a global search box that jumps to the Expenses list with the
+ * query pre-applied, plus the theme control.
  */
 export function Topbar() {
+  const navigate = useNavigate();
+  const [q, setQ] = useState('');
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = q.trim();
+    navigate(trimmed ? `/expenses?q=${encodeURIComponent(trimmed)}` : '/expenses');
+  };
+
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface/60 px-5 backdrop-blur">
-      <div className="relative flex-1 max-w-md">
+      <form onSubmit={submit} className="relative max-w-md flex-1">
         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-muted">
           <Icon name="search" size={16} />
         </span>
         <input
           type="search"
-          disabled
-          placeholder="Search transactions… (coming in Phase 2)"
-          className="input pl-9 disabled:cursor-not-allowed disabled:opacity-60"
-          aria-label="Search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search expenses…"
+          className="input pl-9"
+          aria-label="Search expenses"
         />
-      </div>
+      </form>
       <div className="ml-auto">
         <ThemeToggle />
       </div>

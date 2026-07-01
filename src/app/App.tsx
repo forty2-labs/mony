@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/shared/theme/ThemeProvider';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { ToastProvider } from '@/shared/components/Toast';
 import { queryClient } from './queryClient';
 import { router } from './router';
 
@@ -12,7 +13,9 @@ export function App() {
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <RouterProvider router={router} />
+            <ToastProvider>
+              <RouterProvider router={router} />
+            </ToastProvider>
           </AuthProvider>
         </QueryClientProvider>
       </ThemeProvider>

@@ -146,61 +146,103 @@ export interface AuditLogRow {
 type WithDefaults<T, Optional extends keyof T> = Omit<T, Optional> &
   Partial<Pick<T, Optional>>;
 
+/** Keys of T whose type permits null — these are optional on insert. */
+type NullableKeys<T> = {
+  [K in keyof T]-?: null extends T[K] ? K : never;
+}[keyof T];
+
 type ServerManaged = 'id' | 'user_id' | 'created_at' | 'updated_at';
+
+/**
+ * An insert payload: server-managed columns and any nullable column are
+ * optional; everything else is required.
+ */
+type Insertable<Row, Defaulted extends keyof Row> = WithDefaults<
+  Row,
+  Defaulted | NullableKeys<Row>
+>;
+
+/**
+ * `interface` types lack an implicit index signature, so they don't satisfy
+ * postgrest-js's `Record<string, unknown>` constraint on `GenericTable`. Mapping
+ * over the keys produces an equivalent anonymous object type that does.
+ */
+type Flatten<T> = { [K in keyof T]: T[K] };
+
+/**
+ * Shape a single table to satisfy postgrest-js's `GenericTable`, which requires
+ * Row/Insert/Update *and* a `Relationships` tuple. We don't model relationships
+ * here (joins are written explicitly), so it's always an empty tuple.
+ */
+type TableDef<Row, Insert, Update> = {
+  Row: Flatten<Row>;
+  Insert: Flatten<Insert>;
+  Update: Flatten<Update>;
+  Relationships: [];
+};
 
 export interface Database {
   public: {
     Tables: {
-      profiles: {
-        Row: ProfileRow;
-        Insert: WithDefaults<ProfileRow, 'created_at' | 'updated_at'>;
-        Update: Partial<ProfileRow>;
-      };
-      categories: {
-        Row: CategoryRow;
-        Insert: WithDefaults<CategoryRow, ServerManaged | 'is_archived'>;
-        Update: Partial<CategoryRow>;
-      };
-      expenses: {
-        Row: ExpenseRow;
-        Insert: WithDefaults<ExpenseRow, ServerManaged | 'deleted_at'>;
-        Update: Partial<ExpenseRow>;
-      };
-      income: {
-        Row: IncomeRow;
-        Insert: WithDefaults<IncomeRow, ServerManaged | 'deleted_at'>;
-        Update: Partial<IncomeRow>;
-      };
-      budgets: {
-        Row: BudgetRow;
-        Insert: WithDefaults<BudgetRow, ServerManaged>;
-        Update: Partial<BudgetRow>;
-      };
-      savings_goals: {
-        Row: SavingsGoalRow;
-        Insert: WithDefaults<SavingsGoalRow, ServerManaged | 'current_amount_base'>;
-        Update: Partial<SavingsGoalRow>;
-      };
-      loans: {
-        Row: LoanRow;
-        Insert: WithDefaults<LoanRow, ServerManaged | 'amount_repaid_base'>;
-        Update: Partial<LoanRow>;
-      };
-      subscriptions: {
-        Row: SubscriptionRow;
-        Insert: WithDefaults<SubscriptionRow, ServerManaged | 'is_active'>;
-        Update: Partial<SubscriptionRow>;
-      };
-      exchange_rates: {
-        Row: ExchangeRateRow;
-        Insert: WithDefaults<ExchangeRateRow, 'id' | 'user_id' | 'created_at'>;
-        Update: Partial<ExchangeRateRow>;
-      };
-      audit_logs: {
-        Row: AuditLogRow;
-        Insert: WithDefaults<AuditLogRow, 'id' | 'user_id' | 'created_at'>;
-        Update: never;
-      };
+      profiles: TableDef<
+        ProfileRow,
+        Insertable<ProfileRow, 'created_at' | 'updated_at'>,
+        Partial<ProfileRow>
+      >;
+      categories: TableDef<
+        CategoryRow,
+        Insertable<CategoryRow, ServerManaged | 'is_archived'>,
+        Partial<CategoryRow>
+      >;
+      expenses: TableDef<
+        ExpenseRow,
+        Insertable<ExpenseRow, ServerManaged | 'deleted_at'>,
+        Partial<ExpenseRow>
+      >;
+      income: TableDef<
+        IncomeRow,
+        Insertable<IncomeRow, ServerManaged | 'deleted_at'>,
+        Partial<IncomeRow>
+      >;
+      budgets: TableDef<
+        BudgetRow,
+        Insertable<BudgetRow, ServerManaged>,
+        Partial<BudgetRow>
+      >;
+      savings_goals: TableDef<
+        SavingsGoalRow,
+        Insertable<SavingsGoalRow, ServerManaged | 'current_amount_base'>,
+        Partial<SavingsGoalRow>
+      >;
+      loans: TableDef<
+        LoanRow,
+        Insertable<LoanRow, ServerManaged | 'amount_repaid_base'>,
+        Partial<LoanRow>
+      >;
+      subscriptions: TableDef<
+        SubscriptionRow,
+        Insertable<SubscriptionRow, ServerManaged | 'is_active'>,
+        Partial<SubscriptionRow>
+      >;
+      exchange_rates: TableDef<
+        ExchangeRateRow,
+        Insertable<ExchangeRateRow, 'id' | 'user_id' | 'created_at'>,
+        Partial<ExchangeRateRow>
+      >;
+      audit_logs: TableDef<
+        AuditLogRow,
+        Insertable<AuditLogRow, 'id' | 'user_id' | 'created_at'>,
+        Partial<AuditLogRow>
+      >;
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: {
+      billing_cycle: BillingCycle;
+      loan_status: LoanStatus;
+      income_source: IncomeSource;
+      category_kind: 'expense' | 'income';
+    };
+    CompositeTypes: Record<string, never>;
   };
 }

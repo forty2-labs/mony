@@ -15,6 +15,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/savings', label: 'Savings', icon: 'savings' },
   { to: '/loans', label: 'Loans', icon: 'loans' },
   { to: '/subscriptions', label: 'Subscriptions', icon: 'subscriptions' },
+  { to: '/categories', label: 'Categories', icon: 'categories' },
   { to: '/reports', label: 'Reports', icon: 'reports' },
   { to: '/settings', label: 'Settings', icon: 'settings' },
 ];
