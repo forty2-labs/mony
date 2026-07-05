@@ -21,6 +21,7 @@ const ACCENT: Record<string, string> = {
   "/loans": "text-brand-2",
   "/subscriptions": "text-brand",
   "/categories": "text-warning",
+  "/import": "text-success",
   "/reports": "text-brand-2",
   "/settings": "text-content-muted",
 };

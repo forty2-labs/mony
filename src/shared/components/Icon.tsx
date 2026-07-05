@@ -55,7 +55,11 @@ export type IconName =
   | 'activity'
   | 'sparkles'
   | 'send'
-  | 'ellipsis';
+  | 'ellipsis'
+  | 'import'
+  | 'file'
+  | 'alert'
+  | 'check';
 
 /**
  * Icons offered in the category picker, ordered so the glyphs that match the
@@ -355,6 +359,26 @@ const paths: Record<IconName, JSX.Element> = {
       <circle cx="19" cy="12" r="1.3" fill="currentColor" stroke="none" />
     </>
   ),
+  import: (
+    <>
+      <path d="M12 3v11" />
+      <path d="M8 10l4 4 4-4" />
+      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+    </>
+  ),
+  file: (
+    <>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" />
+      <path d="M14 3v5h5" />
+    </>
+  ),
+  alert: (
+    <>
+      <path d="M12 3 2 20h20L12 3Z" />
+      <path d="M12 10v4M12 17h.01" />
+    </>
+  ),
+  check: <path d="M20 6 9 17l-5-5" />,
 };
 
 interface IconProps extends SVGProps<SVGSVGElement> {

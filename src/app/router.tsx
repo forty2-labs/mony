@@ -34,6 +34,9 @@ const SubscriptionsPage = lazy(() =>
 const CategoriesPage = lazy(() =>
   import('@/features/categories/CategoriesPage').then((m) => ({ default: m.CategoriesPage })),
 );
+const ImportPage = lazy(() =>
+  import('@/features/import/ImportPage').then((m) => ({ default: m.ImportPage })),
+);
 const ReportsPage = lazy(() =>
   import('@/features/reports/ReportsPage').then((m) => ({ default: m.ReportsPage })),
 );
@@ -64,6 +67,7 @@ export const router = createBrowserRouter([
           { path: 'loans', element: lazyPage(<LoansPage />) },
           { path: 'subscriptions', element: lazyPage(<SubscriptionsPage />) },
           { path: 'categories', element: lazyPage(<CategoriesPage />) },
+          { path: 'import', element: lazyPage(<ImportPage />) },
           { path: 'reports', element: lazyPage(<ReportsPage />) },
           { path: 'settings', element: lazyPage(<SettingsPage />) },
           { path: '*', element: lazyPage(<NotFoundPage />) },
