@@ -28,6 +28,9 @@ export const wiseParser: StatementParser = {
         currency: r['currency'],
         date: r['date'],
         description,
+        // Wise names the other party in `Payee Name` (money out) or `Payer
+        // Name` (money in) — used to catch transfers between your own accounts.
+        counterparty: r['payee name'] || r['payer name'],
       });
 
       if (/pending/i.test(r['description'] || '')) draft.notes.push('Pending');

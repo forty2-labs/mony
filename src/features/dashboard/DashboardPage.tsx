@@ -143,7 +143,6 @@ export function DashboardPage() {
 
           {/* Expense activity heatmap */}
           <div className="mt-4 card p-5">
-            <h2 className="mb-4 text-sm font-semibold">Expense activity · last year</h2>
             {heatmapLoading || !heatmap ? (
               <Skeleton className="h-32 w-full" />
             ) : (

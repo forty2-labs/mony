@@ -50,6 +50,8 @@ export function draftFromSigned(params: {
   currency: string;
   date: string;
   description: string;
+  /** Separate payee/counterparty name, when the statement has one. */
+  counterparty?: string;
   suggestedCategory?: string | null;
   notes?: string[];
 }): DraftTransaction {
@@ -63,6 +65,7 @@ export function draftFromSigned(params: {
     type,
     occurredOn: parseStatementDate(date),
     description: description.trim(),
+    counterparty: params.counterparty?.trim() || '',
     amountOriginal: Number.isFinite(signedAmount) ? Math.abs(signedAmount) : NaN,
     currencyOriginal,
     exchangeRate: 1,
@@ -93,7 +96,9 @@ export function isInternalTransfer(text: string): boolean {
 export function flagInternalTransfers(drafts: DraftTransaction[]): DraftTransaction[] {
   if (INTERNAL_TRANSFER_NAMES.length === 0) return drafts;
   return drafts.map((d) =>
-    isInternalTransfer(d.description) ? { ...d, internalTransfer: true, selected: false } : d,
+    isInternalTransfer(`${d.description} ${d.counterparty}`)
+      ? { ...d, internalTransfer: true, selected: false }
+      : d,
   );
 }
 

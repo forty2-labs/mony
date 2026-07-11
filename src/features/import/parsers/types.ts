@@ -14,6 +14,12 @@ export interface DraftTransaction {
   type: TxnType;
   occurredOn: string; // YYYY-MM-DD, '' when unparseable
   description: string;
+  /**
+   * Counterparty / payee name when the statement provides one separately from
+   * the description (e.g. Monzo's `Name` column). Used — alongside the
+   * description — to detect transfers between the user's own accounts.
+   */
+  counterparty: string;
   amountOriginal: number; // positive; NaN when unparseable
   currencyOriginal: string;
   exchangeRate: number; // original -> base

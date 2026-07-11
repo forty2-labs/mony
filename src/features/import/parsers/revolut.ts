@@ -26,6 +26,9 @@ export const revolutParser: StatementParser = {
       const fee = parseAmount(r['fee']);
       const net = (Number.isFinite(amount) ? amount : 0) - (Number.isFinite(fee) ? fee : 0);
 
+      // Revolut has no separate counterparty column — the other party is baked
+      // into `Description` (e.g. "To Jane Doe", "Payment from …"), which the
+      // internal-transfer check already scans, so there's nothing extra to pass.
       const draft = draftFromSigned({
         raw: r,
         signedAmount: net,

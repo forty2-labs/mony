@@ -35,6 +35,9 @@ export const monzoParser: StatementParser = {
         currency: r['currency'],
         date: r['date'],
         description,
+        // Monzo's `Name` is the counterparty (pot name, payee, own-account
+        // transfer target) — used to detect transfers between your accounts.
+        counterparty: r['name'],
         suggestedCategory: r['category'],
       });
     });
