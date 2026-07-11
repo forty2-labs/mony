@@ -15,7 +15,11 @@ import { supabase } from '@/shared/lib/supabase';
  *    manual entry (preserving the local-first promise).
  */
 
-const FRANKFURTER = 'https://api.frankfurter.app';
+// Canonical Frankfurter host (see https://frankfurter.dev). The old
+// api.frankfurter.app host now 301-redirects here; we hit the versioned
+// endpoint directly to avoid the extra round-trip. Same free, keyless ECB
+// data and the same from/to query params.
+const FRANKFURTER = 'https://api.frankfurter.dev/v1';
 
 export interface RateResult {
   rate: number;
