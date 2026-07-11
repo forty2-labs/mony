@@ -60,7 +60,12 @@ export async function upsertBudget(month: string, input: BudgetInput): Promise<B
   const { data, error } = await supabase
     .from('budgets')
     .upsert(
-      { user_id, category_id: input.category_id, period_month: monthToPeriod(month), amount_base: input.amount_base },
+      {
+        user_id,
+        category_id: input.category_id,
+        period_month: monthToPeriod(month),
+        amount_base: input.amount_base,
+      },
       { onConflict: 'user_id,category_id,period_month' },
     )
     .select('*')

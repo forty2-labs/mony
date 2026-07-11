@@ -1,16 +1,14 @@
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { formatMoney } from '@/shared/lib/format';
+
 import { EmptyState } from '@/shared/components/EmptyState';
+import { formatMoney } from '@/shared/lib/format';
+
 import type { TrendPoint } from './api';
 
 const INCOME_COLOR = '#31c07f';
 const EXPENSE_COLOR = '#f16d6d';
 
-function TooltipBox({
-  rows,
-}: {
-  rows: { label: string; value: number; color: string }[];
-}) {
+function TooltipBox({ rows }: { rows: { label: string; value: number; color: string }[] }) {
   return (
     <div className="rounded-xl border border-border bg-surface px-3 py-2 text-xs shadow-soft-lg">
       {rows.map((r) => (
@@ -56,7 +54,11 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
                   <p className="mb-1 px-1 text-xs font-medium text-content">{label}</p>
                   <TooltipBox
                     rows={[
-                      { label: 'Income', value: Number(payload[0]?.value ?? 0), color: INCOME_COLOR },
+                      {
+                        label: 'Income',
+                        value: Number(payload[0]?.value ?? 0),
+                        color: INCOME_COLOR,
+                      },
                       {
                         label: 'Expenses',
                         value: Number(payload[1]?.value ?? 0),

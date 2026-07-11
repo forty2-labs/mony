@@ -1,20 +1,22 @@
 import { useMemo, useState } from 'react';
-import { PageHeader } from '@/shared/components/PageHeader';
-import { StatCard } from '@/shared/components/StatCard';
-import { Icon } from '@/shared/components/Icon';
-import { Skeleton } from '@/shared/components/Skeleton';
-import { EmptyState } from '@/shared/components/EmptyState';
+
+import { useCategories } from '@/features/categories/hooks';
+import { currentMonth, monthLabel, shiftMonth } from '@/features/dashboard/api';
 import { CategoryBadge } from '@/shared/components/CategoryBadge';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { Icon } from '@/shared/components/Icon';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { Skeleton } from '@/shared/components/Skeleton';
+import { StatCard } from '@/shared/components/StatCard';
 import { useToast } from '@/shared/components/Toast';
 import { cn } from '@/shared/lib/cn';
-import { formatMoney } from '@/shared/lib/format';
 import { currencySymbol } from '@/shared/lib/currencies';
 import { BASE_CURRENCY } from '@/shared/lib/env';
-import { currentMonth, monthLabel, shiftMonth } from '@/features/dashboard/api';
-import { useCategories } from '@/features/categories/hooks';
+import { formatMoney } from '@/shared/lib/format';
 import type { CategoryRow } from '@/shared/types/database';
 import type { BudgetRow } from '@/shared/types/database';
-import { useBudgets, useSpendByCategory, useBudgetMutations } from './hooks';
+
+import { useBudgetMutations, useBudgets, useSpendByCategory } from './hooks';
 
 export function BudgetsPage() {
   const [month, setMonth] = useState(() => currentMonth());
@@ -73,7 +75,9 @@ export function BudgetsPage() {
       {
         onSuccess: (n) =>
           n > 0
-            ? toast.success(`Copied ${n} budget${n === 1 ? '' : 's'} from ${monthLabel(from, { month: 'short', year: 'numeric' })}`)
+            ? toast.success(
+                `Copied ${n} budget${n === 1 ? '' : 's'} from ${monthLabel(from, { month: 'short', year: 'numeric' })}`,
+              )
             : toast.toast('No budgets to copy from last month', 'info'),
         onError: (e) => toast.error(e instanceof Error ? e.message : 'Copy failed'),
       },
@@ -98,7 +102,12 @@ export function BudgetsPage() {
       <MonthNav month={month} onChange={setMonth} />
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Budgeted" value={formatMoney(totals.budgeted)} icon="budgets" accent="brand" />
+        <StatCard
+          label="Budgeted"
+          value={formatMoney(totals.budgeted)}
+          icon="budgets"
+          accent="brand"
+        />
         <StatCard label="Spent" value={formatMoney(totals.spent)} icon="expenses" />
         <StatCard
           label="Remaining"
@@ -162,7 +171,10 @@ function MonthNav({ month, onChange }: { month: string; onChange: (m: string) =>
       <div className="flex items-center gap-2">
         <span className="text-sm font-semibold">{monthLabel(month)}</span>
         {!isCurrent && (
-          <button className="text-xs text-brand hover:underline" onClick={() => onChange(currentMonth())}>
+          <button
+            className="text-xs text-brand hover:underline"
+            onClick={() => onChange(currentMonth())}
+          >
             Today
           </button>
         )}

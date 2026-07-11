@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+
 import { Icon } from '@/shared/components/Icon';
 import { cn } from '@/shared/lib/cn';
 

@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import {
   createSubscription,
   deleteSubscription,
   listSubscriptions,
-  updateSubscription,
   type SubscriptionInput,
+  updateSubscription,
 } from './api';
 
 const KEY = ['subscriptions'] as const;

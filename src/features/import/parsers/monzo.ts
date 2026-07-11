@@ -27,8 +27,7 @@ export const monzoParser: StatementParser = {
         const moneyOut = parseAmount(r['money out']);
         signed = Number.isFinite(moneyIn) ? moneyIn : -Math.abs(moneyOut);
       }
-      const description =
-        r['description'] || r['name'] || r['notes and #tags'] || r['type'] || '';
+      const description = r['description'] || r['name'] || r['notes and #tags'] || r['type'] || '';
 
       return draftFromSigned({
         raw: r,

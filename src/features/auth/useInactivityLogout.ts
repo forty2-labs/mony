@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
+
 import { INACTIVITY_TIMEOUT_MS } from '@/shared/lib/env';
+
 import { useAuth } from './AuthProvider';
 
 const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'pointerdown', 'scroll', 'touchstart'];

@@ -11,13 +11,7 @@ export type Timestamptz = string;
 
 export type BillingCycle = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 export type LoanStatus = 'outstanding' | 'partially_repaid' | 'repaid' | 'written_off';
-export type IncomeSource =
-  | 'salary'
-  | 'freelance'
-  | 'investment'
-  | 'interest'
-  | 'refund'
-  | 'other';
+export type IncomeSource = 'salary' | 'freelance' | 'investment' | 'interest' | 'refund' | 'other';
 
 export interface ProfileRow {
   id: UUID; // = auth.users.id
@@ -143,8 +137,7 @@ export interface AuditLogRow {
   created_at: Timestamptz;
 }
 
-type WithDefaults<T, Optional extends keyof T> = Omit<T, Optional> &
-  Partial<Pick<T, Optional>>;
+type WithDefaults<T, Optional extends keyof T> = Omit<T, Optional> & Partial<Pick<T, Optional>>;
 
 /** Keys of T whose type permits null — these are optional on insert. */
 type NullableKeys<T> = {
@@ -204,11 +197,7 @@ export interface Database {
         Insertable<IncomeRow, ServerManaged | 'deleted_at' | 'source'>,
         Partial<IncomeRow>
       >;
-      budgets: TableDef<
-        BudgetRow,
-        Insertable<BudgetRow, ServerManaged>,
-        Partial<BudgetRow>
-      >;
+      budgets: TableDef<BudgetRow, Insertable<BudgetRow, ServerManaged>, Partial<BudgetRow>>;
       savings_goals: TableDef<
         SavingsGoalRow,
         Insertable<SavingsGoalRow, ServerManaged | 'current_amount_base'>,

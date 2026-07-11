@@ -1,19 +1,41 @@
 import { useEffect, useState } from 'react';
+
+import { CATEGORY_ICONS, Icon, type IconName } from '@/shared/components/Icon';
 import { Modal } from '@/shared/components/Modal';
-import { Icon, CATEGORY_ICONS, type IconName } from '@/shared/components/Icon';
 import { cn } from '@/shared/lib/cn';
 import type { CategoryRow } from '@/shared/types/database';
+
 import type { CategoryInput, CategoryKind } from './api';
 
 const PALETTE = [
   // greens / teals / cyans  (first entry is the default for new categories)
-  '#34A368', '#30D158', '#4BE0A8', '#40C8C0', '#64D2FF',
+  '#34A368',
+  '#30D158',
+  '#4BE0A8',
+  '#40C8C0',
+  '#64D2FF',
   // blues / indigos / purples
-  '#0A84FF', '#409CFF', '#5E5CE6', '#7D7AFF', '#BF5AF2', '#DA8FFF',
+  '#0A84FF',
+  '#409CFF',
+  '#5E5CE6',
+  '#7D7AFF',
+  '#BF5AF2',
+  '#DA8FFF',
   // pinks / reds / oranges / yellows
-  '#FF6AC2', '#FF375F', '#FF453A', '#FF6482', '#FF9F0A', '#FF8A3D', '#E8A23A', '#FFD60A',
+  '#FF6AC2',
+  '#FF375F',
+  '#FF453A',
+  '#FF6482',
+  '#FF9F0A',
+  '#FF8A3D',
+  '#E8A23A',
+  '#FFD60A',
   // browns / neutrals
-  '#AC7B5A', '#A2845E', '#8E8E93', '#98989D', '#636366',
+  '#AC7B5A',
+  '#A2845E',
+  '#8E8E93',
+  '#98989D',
+  '#636366',
 ];
 
 const DEFAULT_ICON: IconName = 'tag';

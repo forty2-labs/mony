@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+
 import { Icon, type IconName } from './Icon';
 
 export function EmptyState({

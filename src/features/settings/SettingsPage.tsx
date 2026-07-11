@@ -1,7 +1,7 @@
-import { PageHeader } from '@/shared/components/PageHeader';
-import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { PageHeader } from '@/shared/components/PageHeader';
 import { BASE_CURRENCY, env } from '@/shared/lib/env';
+import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
 function Row({
   title,
@@ -16,9 +16,7 @@ function Row({
     <div className="flex items-center justify-between gap-4 px-5 py-4">
       <div className="min-w-0">
         <p className="text-sm font-medium">{title}</p>
-        {description ? (
-          <p className="mt-0.5 text-xs text-content-muted">{description}</p>
-        ) : null}
+        {description ? <p className="mt-0.5 text-xs text-content-muted">{description}</p> : null}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
@@ -55,10 +53,7 @@ export function SettingsPage() {
             <Row title="Base currency" description="Display currency for totals.">
               <span className="text-sm text-content-muted">{BASE_CURRENCY}</span>
             </Row>
-            <Row
-              title="Auto-logout"
-              description="Sign out after a period of inactivity."
-            >
+            <Row title="Auto-logout" description="Sign out after a period of inactivity.">
               <span className="text-sm text-content-muted">
                 {env.VITE_INACTIVITY_TIMEOUT_MINUTES === 0
                   ? 'Disabled'

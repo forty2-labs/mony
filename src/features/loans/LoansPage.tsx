@@ -1,19 +1,21 @@
 import { useMemo, useState } from 'react';
-import { PageHeader } from '@/shared/components/PageHeader';
-import { StatCard } from '@/shared/components/StatCard';
-import { Icon } from '@/shared/components/Icon';
-import { Skeleton } from '@/shared/components/Skeleton';
+
 import { EmptyState } from '@/shared/components/EmptyState';
+import { Icon } from '@/shared/components/Icon';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { Skeleton } from '@/shared/components/Skeleton';
+import { StatCard } from '@/shared/components/StatCard';
 import { useToast } from '@/shared/components/Toast';
 import { cn } from '@/shared/lib/cn';
-import { formatMoney, formatDate, todayISO } from '@/shared/lib/format';
 import { currencySymbol } from '@/shared/lib/currencies';
 import { BASE_CURRENCY } from '@/shared/lib/env';
-import { useLoans, useLoanMutations } from './hooks';
+import { formatDate, formatMoney, todayISO } from '@/shared/lib/format';
+import type { LoanRow, LoanStatus } from '@/shared/types/database';
+
+import type { LoanInput, LoanStatusFilter } from './api';
+import { useLoanMutations, useLoans } from './hooks';
 import { LoanFormModal } from './LoanFormModal';
 import { RepaymentModal } from './RepaymentModal';
-import type { LoanInput, LoanStatusFilter } from './api';
-import type { LoanRow, LoanStatus } from '@/shared/types/database';
 
 const STATUS_META: Record<LoanStatus, { label: string; className: string }> = {
   outstanding: { label: 'Outstanding', className: 'bg-warning/10 text-warning' },
@@ -128,7 +130,9 @@ export function LoansPage() {
             onClick={() => setFilter(f.value)}
             className={cn(
               'rounded-lg px-3 py-1.5 text-sm font-medium transition',
-              filter === f.value ? 'bg-brand text-brand-fg' : 'text-content-muted hover:text-content',
+              filter === f.value
+                ? 'bg-brand text-brand-fg'
+                : 'text-content-muted hover:text-content',
             )}
           >
             {f.label}

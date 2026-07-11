@@ -16,9 +16,7 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(import.meta.env);
 
 if (!parsed.success) {
-  const issues = parsed.error.issues
-    .map((i) => `  • ${i.path.join('.')}: ${i.message}`)
-    .join('\n');
+  const issues = parsed.error.issues.map((i) => `  • ${i.path.join('.')}: ${i.message}`).join('\n');
   throw new Error(
     `Invalid environment configuration. Did you copy .env.local.example to .env.local?\n${issues}`,
   );

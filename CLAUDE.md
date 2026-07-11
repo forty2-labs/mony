@@ -13,12 +13,17 @@ npm run dev        # Vite dev server at http://localhost:5173 (requires .env.loc
 npm run build      # tsc -b && vite build — full type-check + production build
 npm run typecheck  # tsc -b --noEmit — type-check only (fast, no esbuild)
 npm run preview    # serve the production build
-npm run lint       # eslint
+npm run lint       # eslint (import sort/grouping + unused-import removal are lint rules)
+npm run lint:fix   # eslint --fix — sort/group imports, drop dead imports
+npm run format     # prettier --write . — format the whole tree
+npm run format:check  # prettier --check . — CI-friendly, no writes
 ```
+
+Imports are sorted and grouped by ESLint ([eslint-plugin-simple-import-sort](eslint.config.js)): third-party packages → `@/` internal alias → relative `./`, blank-line separated and alphabetized within each group. Formatting is owned by Prettier ([.prettierrc.json](.prettierrc.json)); `eslint-config-prettier` disables any ESLint rules that would fight it.
 
 There is **no test runner yet** (testing is planned for Phase 5). When adding tests, wire the runner into `package.json` before assuming `npm test` exists.
 
-`npm run dev` will throw immediately if `.env.local` is missing or invalid — env is validated by Zod at startup ([src/shared/lib/env.ts](src/shared/lib/env.ts)). Copy `.env.local.example` → `.env.local` and supply the Supabase URL + **anon** key (never the service_role key). `npm run build` does *not* need env (validation is runtime, in the browser).
+`npm run dev` will throw immediately if `.env.local` is missing or invalid — env is validated by Zod at startup ([src/shared/lib/env.ts](src/shared/lib/env.ts)). Copy `.env.local.example` → `.env.local` and supply the Supabase URL + **anon** key (never the service_role key). `npm run build` does _not_ need env (validation is runtime, in the browser).
 
 ## Phased build — read before adding features
 
@@ -44,7 +49,7 @@ This project follows a **mandatory phased build** with an approval gate. Do not 
 
 **Data access:** all reads/writes go through the single Supabase client ([src/shared/lib/supabase.ts](src/shared/lib/supabase.ts)). Security is enforced by **Row Level Security in the database, not the client** — the anon key alone grants nothing. Use TanStack Query (configured in `src/app/queryClient.ts`) for server state. Per-feature convention: each module has an `api.ts` (raw Supabase calls) + `hooks.ts` (TanStack Query wrappers). Mutations that affect totals invalidate both their own key and `['dashboard']`.
 
-**Money entry & FX:** monetary input uses the shared `CurrencyAmountField` ([src/features/fx/CurrencyAmountField.tsx](src/features/fx/CurrencyAmountField.tsx)). For non-base currencies it auto-fetches the rate *as of the transaction date* from Frankfurter ([src/features/fx/fxService.ts](src/features/fx/fxService.ts)), caches it in `exchange_rates`, but always lets the user override; the rate + `amount_base` are then frozen on the row. FX fetches never throw to the UI — on failure the field falls back to manual entry.
+**Money entry & FX:** monetary input uses the shared `CurrencyAmountField` ([src/features/fx/CurrencyAmountField.tsx](src/features/fx/CurrencyAmountField.tsx)). For non-base currencies it auto-fetches the rate _as of the transaction date_ from Frankfurter ([src/features/fx/fxService.ts](src/features/fx/fxService.ts)), caches it in `exchange_rates`, but always lets the user override; the rate + `amount_base` are then frozen on the row. FX fetches never throw to the UI — on failure the field falls back to manual entry.
 
 **Schema↔types gotcha:** `Database` ([src/shared/types/database.ts](src/shared/types/database.ts)) wraps each table in a `TableDef` helper that adds the `Relationships: []` key and `Flatten`s the row `interface` — both are required for postgrest-js to recognize the schema (otherwise every table resolves to `never`). `Insertable` makes server-managed and nullable columns optional on insert.
 

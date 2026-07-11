@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Icon } from './Icon';
+
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
+
+import { Icon } from './Icon';
 
 /**
  * App top bar: a global search box that jumps to the Expenses list with the

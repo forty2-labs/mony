@@ -126,14 +126,12 @@ export async function fetchDashboard(month: string): Promise<DashboardData> {
   const winInc = (winIncRes.data ?? []) as unknown as IncomeLite[];
   const inMonth = (occurred: string) => occurred >= start && occurred < end;
 
-  const monthExpenses = winExp.filter((e) => inMonth(e.occurred_on)).reduce(
-    (a, e) => a + Number(e.amount_base),
-    0,
-  );
-  const monthIncome = winInc.filter((i) => inMonth(i.occurred_on)).reduce(
-    (a, i) => a + Number(i.amount_base),
-    0,
-  );
+  const monthExpenses = winExp
+    .filter((e) => inMonth(e.occurred_on))
+    .reduce((a, e) => a + Number(e.amount_base), 0);
+  const monthIncome = winInc
+    .filter((i) => inMonth(i.occurred_on))
+    .reduce((a, i) => a + Number(i.amount_base), 0);
 
   // Category breakdown for the selected month.
   const byCat = new Map<string, CategorySlice>();

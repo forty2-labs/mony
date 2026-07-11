@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { BASE_CURRENCY } from '@/shared/lib/env';
-import { CURRENCIES, currencySymbol } from '@/shared/lib/currencies';
-import { toBaseAmount } from '@/shared/lib/money';
-import { formatMoney } from '@/shared/lib/format';
-import { fetchRateToBase } from './fxService';
+
 import { Icon } from '@/shared/components/Icon';
 import { cn } from '@/shared/lib/cn';
+import { CURRENCIES, currencySymbol } from '@/shared/lib/currencies';
+import { BASE_CURRENCY } from '@/shared/lib/env';
+import { formatMoney } from '@/shared/lib/format';
+import { toBaseAmount } from '@/shared/lib/money';
+
+import { fetchRateToBase } from './fxService';
 
 export interface MoneyValue {
   amountOriginal: number;
@@ -92,9 +94,7 @@ export function CurrencyAmountField({
             className="input pl-8"
             placeholder="0.00"
             value={Number.isNaN(amountOriginal) ? '' : amountOriginal}
-            onChange={(e) =>
-              onChange({ ...value, amountOriginal: parseFloat(e.target.value) })
-            }
+            onChange={(e) => onChange({ ...value, amountOriginal: parseFloat(e.target.value) })}
           />
         </div>
         <select
@@ -145,9 +145,12 @@ export function CurrencyAmountField({
               )}
             >
               {rateStatus === 'loading' && 'Fetching live rate…'}
-              {rateStatus === 'live' && `Live · 1 ${currencyOriginal} ≈ ${rate.toFixed(4)} ${BASE_CURRENCY}`}
-              {rateStatus === 'manual' && `Manual · 1 ${currencyOriginal} = ${(rate || 0).toFixed(4)} ${BASE_CURRENCY}`}
-              {rateStatus === 'idle' && `1 ${currencyOriginal} = ${(rate || 0).toFixed(4)} ${BASE_CURRENCY}`}
+              {rateStatus === 'live' &&
+                `Live · 1 ${currencyOriginal} ≈ ${rate.toFixed(4)} ${BASE_CURRENCY}`}
+              {rateStatus === 'manual' &&
+                `Manual · 1 ${currencyOriginal} = ${(rate || 0).toFixed(4)} ${BASE_CURRENCY}`}
+              {rateStatus === 'idle' &&
+                `1 ${currencyOriginal} = ${(rate || 0).toFixed(4)} ${BASE_CURRENCY}`}
             </span>
             <span className="text-base font-semibold tabular-nums text-content">
               {formatMoney(baseAmount)}

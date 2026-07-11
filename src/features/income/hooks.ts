@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import {
   createIncome,
   deleteIncome,
-  listIncome,
-  updateIncome,
   type IncomeFilters,
   type IncomeInput,
+  listIncome,
+  updateIncome,
 } from './api';
 
 const KEY = ['income'] as const;

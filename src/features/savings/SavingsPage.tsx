@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react';
-import { PageHeader } from '@/shared/components/PageHeader';
-import { Icon } from '@/shared/components/Icon';
-import { Skeleton } from '@/shared/components/Skeleton';
+
 import { EmptyState } from '@/shared/components/EmptyState';
+import { Icon } from '@/shared/components/Icon';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { Skeleton } from '@/shared/components/Skeleton';
 import { useToast } from '@/shared/components/Toast';
 import { cn } from '@/shared/lib/cn';
-import { formatMoney, formatDate } from '@/shared/lib/format';
-import { useGoals, useGoalMutations } from './hooks';
-import { SavingsGoalFormModal } from './SavingsGoalFormModal';
-import { ContributeModal } from './ContributeModal';
-import type { SavingsGoalInput } from './api';
+import { formatDate, formatMoney } from '@/shared/lib/format';
 import type { SavingsGoalRow } from '@/shared/types/database';
+
+import type { SavingsGoalInput } from './api';
+import { ContributeModal } from './ContributeModal';
+import { useGoalMutations, useGoals } from './hooks';
+import { SavingsGoalFormModal } from './SavingsGoalFormModal';
 
 export function SavingsPage() {
   const { data: goals, isLoading } = useGoals();
@@ -184,7 +186,10 @@ function GoalCard({
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-2">
           <div
-            className={cn('h-full rounded-full transition-all', complete ? 'bg-success' : 'bg-brand')}
+            className={cn(
+              'h-full rounded-full transition-all',
+              complete ? 'bg-success' : 'bg-brand',
+            )}
             style={{ width: `${pct}%` }}
           />
         </div>

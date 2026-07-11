@@ -42,9 +42,7 @@ async function currentUserId(): Promise<string> {
   return id;
 }
 
-export async function listIncome(
-  filters: IncomeFilters = {},
-): Promise<IncomeWithCategory[]> {
+export async function listIncome(filters: IncomeFilters = {}): Promise<IncomeWithCategory[]> {
   let q = supabase.from('income').select(SELECT).is('deleted_at', null);
 
   if (filters.categoryId) q = q.eq('category_id', filters.categoryId);
@@ -87,10 +85,7 @@ export async function createIncome(input: IncomeInput): Promise<IncomeRow> {
   return data;
 }
 
-export async function updateIncome(
-  id: string,
-  patch: Partial<IncomeInput>,
-): Promise<IncomeRow> {
+export async function updateIncome(id: string, patch: Partial<IncomeInput>): Promise<IncomeRow> {
   const { data, error } = await supabase
     .from('income')
     .update(patch)

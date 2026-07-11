@@ -1,6 +1,6 @@
-import { useTheme, type ThemePreference } from './ThemeProvider';
 import { Icon, type IconName } from '../components/Icon';
 import { cn } from '../lib/cn';
+import { type ThemePreference, useTheme } from './ThemeProvider';
 
 const OPTIONS: { value: ThemePreference; icon: IconName; label: string }[] = [
   { value: 'light', icon: 'sun', label: 'Light' },

@@ -1,11 +1,11 @@
 import { parseDelimited } from './csv';
 import { monzoParser } from './monzo';
 import { revolutParser } from './revolut';
-import { wiseParser } from './wise';
 import type { ParseOutcome, StatementParser } from './types';
+import { wiseParser } from './wise';
 
-export type { DraftTransaction, StatementParser, ParseOutcome, TxnType } from './types';
-export { validateDraft, draftBaseAmount } from './normalize';
+export { draftBaseAmount, validateDraft } from './normalize';
+export type { DraftTransaction, ParseOutcome, StatementParser, TxnType } from './types';
 
 /** Registry — add a new bank here and it appears everywhere automatically. */
 export const PARSERS: StatementParser[] = [monzoParser, revolutParser, wiseParser];

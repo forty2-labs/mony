@@ -1,13 +1,14 @@
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+
 import { cn } from '../lib/cn';
 
 type ToastKind = 'success' | 'error' | 'info';

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Navigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from './AuthProvider';
+
 import { Icon } from '@/shared/components/Icon';
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
+
+import { useAuth } from './AuthProvider';
 
 type Mode = 'signin' | 'signup' | 'otp';
 
@@ -24,9 +26,7 @@ export function LoginPage() {
   const { session, signInWithPassword, signUpWithPassword, signInWithOtp } = useAuth();
   const location = useLocation();
   const [mode, setMode] = useState<Mode>('signin');
-  const [banner, setBanner] = useState<{ kind: 'error' | 'success'; text: string } | null>(
-    null,
-  );
+  const [banner, setBanner] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
 
   const {
     register,
@@ -87,9 +87,7 @@ export function LoginPage() {
             <Icon name="vault" size={30} />
           </div>
           <h1 className="text-xl font-semibold tracking-tight">{copy.title}</h1>
-          <p className="mt-1 text-sm text-content-muted">
-            Your private financial vault.
-          </p>
+          <p className="mt-1 text-sm text-content-muted">Your private financial vault.</p>
         </div>
 
         <form onSubmit={onSubmit} className="card space-y-4 p-6">
@@ -135,9 +133,7 @@ export function LoginPage() {
                 pattern: { value: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, message: 'Enter a valid email' },
               })}
             />
-            {errors.email && (
-              <p className="mt-1 text-xs text-danger">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="mt-1 text-xs text-danger">{errors.email.message}</p>}
           </div>
 
           {mode !== 'otp' && (

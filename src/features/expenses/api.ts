@@ -42,9 +42,7 @@ async function currentUserId(): Promise<string> {
   return id;
 }
 
-export async function listExpenses(
-  filters: ExpenseFilters = {},
-): Promise<ExpenseWithCategory[]> {
+export async function listExpenses(filters: ExpenseFilters = {}): Promise<ExpenseWithCategory[]> {
   let q = supabase.from('expenses').select(SELECT).is('deleted_at', null);
 
   if (filters.categoryId) q = q.eq('category_id', filters.categoryId);
@@ -87,10 +85,7 @@ export async function createExpense(input: ExpenseInput): Promise<ExpenseRow> {
   return data;
 }
 
-export async function updateExpense(
-  id: string,
-  patch: Partial<ExpenseInput>,
-): Promise<ExpenseRow> {
+export async function updateExpense(id: string, patch: Partial<ExpenseInput>): Promise<ExpenseRow> {
   const { data, error } = await supabase
     .from('expenses')
     .update(patch)

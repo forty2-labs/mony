@@ -24,8 +24,7 @@ export const revolutParser: StatementParser = {
     return rows.map((r) => {
       const amount = parseAmount(r['amount']);
       const fee = parseAmount(r['fee']);
-      const net =
-        (Number.isFinite(amount) ? amount : 0) - (Number.isFinite(fee) ? fee : 0);
+      const net = (Number.isFinite(amount) ? amount : 0) - (Number.isFinite(fee) ? fee : 0);
 
       const draft = draftFromSigned({
         raw: r,

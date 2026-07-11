@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import {
   createLoan,
   deleteLoan,
   listLoans,
-  recordRepayment,
-  updateLoan,
   type LoanInput,
   type LoanStatusFilter,
+  recordRepayment,
+  updateLoan,
 } from './api';
 
 const KEY = ['loans'] as const;

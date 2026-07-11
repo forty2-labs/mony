@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from 'react';
-import { Icon } from './Icon';
+import { type ReactNode, useState } from 'react';
+
 import { CURRENCIES } from '../lib/currencies';
+import { Icon } from './Icon';
 
 export interface CommonFilters {
   search: string;

@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Modal } from '@/shared/components/Modal';
+
+import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
 import { DateField } from '@/shared/components/DateField';
+import { Modal } from '@/shared/components/Modal';
 import { BASE_CURRENCY } from '@/shared/lib/env';
 import { todayISO } from '@/shared/lib/format';
 import { toBaseAmount } from '@/shared/lib/money';
-import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
-import type { LoanInput } from './api';
 import type { LoanRow, LoanStatus } from '@/shared/types/database';
+
+import type { LoanInput } from './api';
 
 const STATUS_OPTIONS: { value: LoanStatus; label: string }[] = [
   { value: 'outstanding', label: 'Outstanding' },

@@ -1,22 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal } from '@/shared/components/Modal';
-import { Icon } from '@/shared/components/Icon';
-import { StatCard } from '@/shared/components/StatCard';
-import { EmptyState } from '@/shared/components/EmptyState';
+
 import { useCategories } from '@/features/categories/hooks';
 import { fetchRateToBase } from '@/features/fx/fxService';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { Icon } from '@/shared/components/Icon';
+import { Modal } from '@/shared/components/Modal';
+import { StatCard } from '@/shared/components/StatCard';
+import { cn } from '@/shared/lib/cn';
 import { CURRENCIES } from '@/shared/lib/currencies';
 import { BASE_CURRENCY } from '@/shared/lib/env';
 import { formatMoney } from '@/shared/lib/format';
-import { cn } from '@/shared/lib/cn';
+
+import type { BulkImportPayload } from './api';
 import {
   draftBaseAmount,
-  validateDraft,
   type DraftTransaction,
   type ParseOutcome,
   type TxnType,
+  validateDraft,
 } from './parsers';
-import type { BulkImportPayload } from './api';
 
 type SortKey = 'date' | 'amount';
 type TypeFilter = 'all' | 'expense' | 'income';
@@ -89,9 +91,7 @@ function ReviewTable({
       prev.map((r) => {
         if (r.categoryId || !r.suggestedCategory) return r;
         const match = categories.find(
-          (c) =>
-            c.kind === r.type &&
-            c.name.toLowerCase() === r.suggestedCategory!.toLowerCase(),
+          (c) => c.kind === r.type && c.name.toLowerCase() === r.suggestedCategory!.toLowerCase(),
         );
         return match ? { ...r, categoryId: match.id } : r;
       }),
@@ -121,9 +121,7 @@ function ReviewTable({
         if (cancelled || !result) continue;
         setRows((prev) =>
           prev.map((r) =>
-            r.currencyOriginal === currency &&
-            r.occurredOn === date &&
-            r.exchangeRate === 1
+            r.currencyOriginal === currency && r.occurredOn === date && r.exchangeRate === 1
               ? { ...r, exchangeRate: result.rate }
               : r,
           ),
@@ -145,8 +143,7 @@ function ReviewTable({
     const q = query.trim().toLowerCase();
     const filtered = rows.filter((r) => {
       if (typeFilter !== 'all' && r.type !== typeFilter) return false;
-      if (attentionOnly && validations.get(r.rowId)?.valid && r.notes.length === 0)
-        return false;
+      if (attentionOnly && validations.get(r.rowId)?.valid && r.notes.length === 0) return false;
       if (q) {
         const cat = categories?.find((c) => c.id === r.categoryId)?.name ?? '';
         const hay = `${r.description} ${cat} ${r.currencyOriginal}`.toLowerCase();
@@ -164,9 +161,7 @@ function ReviewTable({
   }, [rows, query, typeFilter, attentionOnly, sortKey, sortAsc, validations, categories]);
 
   const summary = useMemo(() => {
-    const selectedValid = rows.filter(
-      (r) => r.selected && validations.get(r.rowId)?.valid,
-    );
+    const selectedValid = rows.filter((r) => r.selected && validations.get(r.rowId)?.valid);
     const expenses = selectedValid.filter((r) => r.type === 'expense');
     const income = selectedValid.filter((r) => r.type === 'income');
     const sum = (list: DraftTransaction[]) =>
@@ -197,14 +192,12 @@ function ReviewTable({
     setRows((prev) => prev.map((r) => (ids.has(r.rowId) ? { ...r, selected } : r)));
   };
 
-  const allDisplayedSelected =
-    displayed.length > 0 && displayed.every((r) => r.selected);
+  const allDisplayedSelected = displayed.length > 0 && displayed.every((r) => r.selected);
   const someDisplayedSelected = displayed.some((r) => r.selected);
   const headerCheckRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (headerCheckRef.current) {
-      headerCheckRef.current.indeterminate =
-        someDisplayedSelected && !allDisplayedSelected;
+      headerCheckRef.current.indeterminate = someDisplayedSelected && !allDisplayedSelected;
     }
   }, [someDisplayedSelected, allDisplayedSelected]);
 
@@ -423,9 +416,7 @@ function ReviewTable({
                       <input
                         className={cellClass}
                         value={row.description}
-                        onChange={(e) =>
-                          patch(row.rowId, { description: e.target.value })
-                        }
+                        onChange={(e) => patch(row.rowId, { description: e.target.value })}
                         placeholder="Description"
                       />
                     </td>
@@ -433,9 +424,7 @@ function ReviewTable({
                       <select
                         className={cellClass}
                         value={row.categoryId ?? ''}
-                        onChange={(e) =>
-                          patch(row.rowId, { categoryId: e.target.value || null })
-                        }
+                        onChange={(e) => patch(row.rowId, { categoryId: e.target.value || null })}
                       >
                         <option value="">Uncategorised</option>
                         {cats.map((c) => (
@@ -455,9 +444,7 @@ function ReviewTable({
                           onChange={(e) =>
                             patch(row.rowId, {
                               amountOriginal:
-                                e.target.value === ''
-                                  ? NaN
-                                  : Number.parseFloat(e.target.value),
+                                e.target.value === '' ? NaN : Number.parseFloat(e.target.value),
                             })
                           }
                         />
@@ -485,9 +472,7 @@ function ReviewTable({
                             onChange={(e) =>
                               patch(row.rowId, {
                                 exchangeRate:
-                                  e.target.value === ''
-                                    ? NaN
-                                    : Number.parseFloat(e.target.value),
+                                  e.target.value === '' ? NaN : Number.parseFloat(e.target.value),
                               })
                             }
                           />
@@ -512,9 +497,7 @@ function ReviewTable({
                     <td className="px-2 py-2">
                       <button
                         type="button"
-                        onClick={() =>
-                          setRows((prev) => prev.filter((r) => r.rowId !== row.rowId))
-                        }
+                        onClick={() => setRows((prev) => prev.filter((r) => r.rowId !== row.rowId))}
                         title="Remove row"
                         className="rounded-lg p-1 text-content-muted transition hover:bg-surface-2 hover:text-danger"
                       >

@@ -1,24 +1,24 @@
 import { lazy, Suspense, useState } from 'react';
-import { PageHeader } from '@/shared/components/PageHeader';
-import { StatCard } from '@/shared/components/StatCard';
-import { Icon } from '@/shared/components/Icon';
-import { Skeleton } from '@/shared/components/Skeleton';
-import { EmptyState } from '@/shared/components/EmptyState';
+
+import { useAuth } from '@/features/auth/AuthProvider';
+import type { ExpenseInput } from '@/features/expenses/api';
+import { ExpenseFormModal } from '@/features/expenses/ExpenseFormModal';
+import { useExpenseMutations } from '@/features/expenses/hooks';
 import { CategoryBadge } from '@/shared/components/CategoryBadge';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { Icon } from '@/shared/components/Icon';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { Skeleton } from '@/shared/components/Skeleton';
+import { StatCard } from '@/shared/components/StatCard';
 import { useToast } from '@/shared/components/Toast';
 import { cn } from '@/shared/lib/cn';
-import { formatMoney, formatDate } from '@/shared/lib/format';
-import { useAuth } from '@/features/auth/AuthProvider';
-import { useExpenseMutations } from '@/features/expenses/hooks';
-import { ExpenseFormModal } from '@/features/expenses/ExpenseFormModal';
-import type { ExpenseInput } from '@/features/expenses/api';
+import { formatDate, formatMoney } from '@/shared/lib/format';
+
+import { type CategorySlice, currentMonth, monthLabel, type RecentTx, shiftMonth } from './api';
 import { useDashboard } from './hooks';
-import { currentMonth, monthLabel, shiftMonth, type CategorySlice, type RecentTx } from './api';
 
 // Recharts is heavy — split it into its own chunk loaded on demand.
-const TrendChart = lazy(() =>
-  import('./DashboardCharts').then((m) => ({ default: m.TrendChart })),
-);
+const TrendChart = lazy(() => import('./DashboardCharts').then((m) => ({ default: m.TrendChart })));
 
 export function DashboardPage() {
   const { user } = useAuth();

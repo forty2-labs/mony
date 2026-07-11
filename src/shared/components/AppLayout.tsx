@@ -1,9 +1,11 @@
 import { Outlet } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+
+import { useInactivityLogout } from '@/features/auth/useInactivityLogout';
+
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
-import { useInactivityLogout } from '@/features/auth/useInactivityLogout';
 
 /** The authenticated app shell: persistent sidebar + topbar, animated content. */
 export function AppLayout() {

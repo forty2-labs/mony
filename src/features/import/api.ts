@@ -1,6 +1,6 @@
-import { supabase } from '@/shared/lib/supabase';
 import type { ExpenseInput } from '@/features/expenses/api';
 import type { IncomeInput } from '@/features/income/api';
+import { supabase } from '@/shared/lib/supabase';
 
 /** Supabase rejects very large single inserts; chunk to stay well under limits. */
 const CHUNK_SIZE = 500;

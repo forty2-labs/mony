@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Modal } from '@/shared/components/Modal';
+
+import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
 import { DateField } from '@/shared/components/DateField';
+import { Modal } from '@/shared/components/Modal';
 import { BASE_CURRENCY } from '@/shared/lib/env';
 import { todayISO } from '@/shared/lib/format';
 import { toBaseAmount } from '@/shared/lib/money';
-import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
-import type { SubscriptionInput } from './api';
 import type { BillingCycle, SubscriptionRow } from '@/shared/types/database';
+
+import type { SubscriptionInput } from './api';
 
 const CYCLES: { value: BillingCycle; label: string }[] = [
   { value: 'weekly', label: 'Weekly' },
@@ -29,11 +31,7 @@ export function SubscriptionFormModal({
   saving?: boolean;
 }) {
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={initial ? 'Edit subscription' : 'Add subscription'}
-    >
+    <Modal open={open} onClose={onClose} title={initial ? 'Edit subscription' : 'Add subscription'}>
       <SubscriptionForm
         key={initial?.id ?? 'new'}
         initial={initial}

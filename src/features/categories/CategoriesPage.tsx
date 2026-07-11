@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { PageHeader } from '@/shared/components/PageHeader';
-import { Icon } from '@/shared/components/Icon';
-import { Skeleton } from '@/shared/components/Skeleton';
-import { EmptyState } from '@/shared/components/EmptyState';
+
 import { CategoryBadge } from '@/shared/components/CategoryBadge';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { Icon } from '@/shared/components/Icon';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { Skeleton } from '@/shared/components/Skeleton';
 import { useToast } from '@/shared/components/Toast';
 import type { CategoryRow } from '@/shared/types/database';
-import { useCategories, useCategoryMutations } from './hooks';
-import { CategoryFormModal } from './CategoryFormModal';
+
 import type { CategoryInput, CategoryKind } from './api';
+import { CategoryFormModal } from './CategoryFormModal';
+import { useCategories, useCategoryMutations } from './hooks';
 
 export function CategoriesPage() {
   const { data: categories, isLoading } = useCategories();

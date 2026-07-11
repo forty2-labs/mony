@@ -1,8 +1,9 @@
 import { useState } from 'react';
+
 import { Modal } from '@/shared/components/Modal';
-import { formatMoney } from '@/shared/lib/format';
 import { currencySymbol } from '@/shared/lib/currencies';
 import { BASE_CURRENCY } from '@/shared/lib/env';
+import { formatMoney } from '@/shared/lib/format';
 import type { LoanRow } from '@/shared/types/database';
 
 /** Record a repayment (in base currency) against a loan's outstanding balance. */
@@ -24,7 +25,15 @@ export function RepaymentModal({
       title={loan ? `Repayment from ${loan.person_name}` : ''}
       widthClass="max-w-sm"
     >
-      {loan && <RepaymentForm key={loan.id} loan={loan} onCancel={onClose} onSubmit={onSubmit} saving={saving} />}
+      {loan && (
+        <RepaymentForm
+          key={loan.id}
+          loan={loan}
+          onCancel={onClose}
+          onSubmit={onSubmit}
+          saving={saving}
+        />
+      )}
     </Modal>
   );
 }

@@ -1,15 +1,15 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import { AppLayout } from '@/shared/components/AppLayout';
-import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
-import { LoginPage } from '@/features/auth/LoginPage';
-import { FullScreenLoader } from '@/shared/components/FullScreenLoader';
 
+import { LoginPage } from '@/features/auth/LoginPage';
+import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 /**
  * Routes are lazy-loaded so each feature ships as its own chunk (code splitting).
  * The dashboard is eager since it's the default landing view.
  */
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { AppLayout } from '@/shared/components/AppLayout';
+import { FullScreenLoader } from '@/shared/components/FullScreenLoader';
 
 const ExpensesPage = lazy(() =>
   import('@/features/expenses/ExpensesPage').then((m) => ({ default: m.ExpensesPage })),

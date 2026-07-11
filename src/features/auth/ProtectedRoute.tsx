@@ -1,6 +1,8 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from './AuthProvider';
+
 import { FullScreenLoader } from '@/shared/components/FullScreenLoader';
+
+import { useAuth } from './AuthProvider';
 
 /** Gates all authenticated routes; redirects to /login when signed out. */
 export function ProtectedRoute() {

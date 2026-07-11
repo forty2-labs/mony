@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Modal } from '@/shared/components/Modal';
+
 import { DateField } from '@/shared/components/DateField';
+import { Modal } from '@/shared/components/Modal';
 import { currencySymbol } from '@/shared/lib/currencies';
 import { BASE_CURRENCY } from '@/shared/lib/env';
-import type { SavingsGoalInput } from './api';
 import type { SavingsGoalRow } from '@/shared/types/database';
+
+import type { SavingsGoalInput } from './api';
 
 export function SavingsGoalFormModal({
   open,
@@ -44,9 +46,7 @@ function GoalForm({
   saving?: boolean;
 }) {
   const [name, setName] = useState(() => initial?.name ?? '');
-  const [target, setTarget] = useState(() =>
-    initial ? String(initial.target_amount_base) : '',
-  );
+  const [target, setTarget] = useState(() => (initial ? String(initial.target_amount_base) : ''));
   const [current, setCurrent] = useState(() =>
     initial ? String(initial.current_amount_base) : '',
   );

@@ -1,9 +1,10 @@
 import { useState } from 'react';
+
 import { Modal } from '@/shared/components/Modal';
 import { cn } from '@/shared/lib/cn';
-import { formatMoney } from '@/shared/lib/format';
 import { currencySymbol } from '@/shared/lib/currencies';
 import { BASE_CURRENCY } from '@/shared/lib/env';
+import { formatMoney } from '@/shared/lib/format';
 import type { SavingsGoalRow } from '@/shared/types/database';
 
 /** Add to or withdraw from a goal's saved balance. */
@@ -19,8 +20,21 @@ export function ContributeModal({
   saving?: boolean;
 }) {
   return (
-    <Modal open={!!goal} onClose={onClose} title={goal ? `Update “${goal.name}”` : ''} widthClass="max-w-sm">
-      {goal && <ContributeForm key={goal.id} goal={goal} onCancel={onClose} onSubmit={onSubmit} saving={saving} />}
+    <Modal
+      open={!!goal}
+      onClose={onClose}
+      title={goal ? `Update “${goal.name}”` : ''}
+      widthClass="max-w-sm"
+    >
+      {goal && (
+        <ContributeForm
+          key={goal.id}
+          goal={goal}
+          onCancel={onClose}
+          onSubmit={onSubmit}
+          saving={saving}
+        />
+      )}
     </Modal>
   );
 }

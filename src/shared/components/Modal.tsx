@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 /** Accessible-ish centered dialog with backdrop, Escape-to-close and scroll lock. */

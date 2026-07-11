@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { PageHeader } from '@/shared/components/PageHeader';
-import { Icon } from '@/shared/components/Icon';
-import { Skeleton } from '@/shared/components/Skeleton';
-import { EmptyState } from '@/shared/components/EmptyState';
+
+import { useCategories } from '@/features/categories/hooks';
 import { CategoryBadge } from '@/shared/components/CategoryBadge';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { type CommonFilters, EMPTY_FILTERS, FilterBar } from '@/shared/components/FilterBar';
+import { Icon } from '@/shared/components/Icon';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { Skeleton } from '@/shared/components/Skeleton';
 import { useToast } from '@/shared/components/Toast';
-import { FilterBar, EMPTY_FILTERS, type CommonFilters } from '@/shared/components/FilterBar';
-import { formatMoney, formatDate } from '@/shared/lib/format';
 import { currencySymbol } from '@/shared/lib/currencies';
 import { BASE_CURRENCY } from '@/shared/lib/env';
-import { useCategories } from '@/features/categories/hooks';
-import { useExpenses, useExpenseMutations } from './hooks';
-import { ExpenseFormModal } from './ExpenseFormModal';
+import { formatDate, formatMoney } from '@/shared/lib/format';
+
 import type { ExpenseFilters, ExpenseInput, ExpenseWithCategory } from './api';
+import { ExpenseFormModal } from './ExpenseFormModal';
+import { useExpenseMutations, useExpenses } from './hooks';
 
 function toApiFilters(f: CommonFilters, categoryId: string): ExpenseFilters {
   return {
@@ -106,9 +108,7 @@ export function ExpensesPage() {
     <div>
       <PageHeader
         title="Expenses"
-        subtitle={
-          expenses ? `${expenses.length} shown · ${formatMoney(total)} total` : 'Loading…'
-        }
+        subtitle={expenses ? `${expenses.length} shown · ${formatMoney(total)} total` : 'Loading…'}
         actions={
           <button className="btn-primary" onClick={openNew}>
             <Icon name="plus" size={16} />
@@ -164,7 +164,10 @@ export function ExpensesPage() {
       ) : (
         <div className="card divide-y divide-border overflow-hidden">
           {expenses.map((e) => (
-            <div key={e.id} className="group flex items-center gap-3 px-4 py-3 transition hover:bg-surface-2/50">
+            <div
+              key={e.id}
+              className="group flex items-center gap-3 px-4 py-3 transition hover:bg-surface-2/50"
+            >
               <CategoryBadge color={e.category?.color} icon={e.category?.icon} size={36} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">

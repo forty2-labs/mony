@@ -1,5 +1,6 @@
 import { BASE_CURRENCY } from '@/shared/lib/env';
 import { toBaseAmount } from '@/shared/lib/money';
+
 import type { StatementRow } from './csv';
 import type { DraftTransaction } from './types';
 
@@ -81,11 +82,9 @@ export interface RowValidation {
 export function validateDraft(d: DraftTransaction): RowValidation {
   const errors: string[] = [];
   if (!d.occurredOn) errors.push('Invalid or missing date');
-  if (!Number.isFinite(d.amountOriginal) || d.amountOriginal <= 0)
-    errors.push('Invalid amount');
+  if (!Number.isFinite(d.amountOriginal) || d.amountOriginal <= 0) errors.push('Invalid amount');
   if (!/^[A-Z]{3}$/.test(d.currencyOriginal)) errors.push('Invalid currency code');
-  if (!Number.isFinite(d.exchangeRate) || d.exchangeRate <= 0)
-    errors.push('Invalid exchange rate');
+  if (!Number.isFinite(d.exchangeRate) || d.exchangeRate <= 0) errors.push('Invalid exchange rate');
   return { valid: errors.length === 0, errors };
 }
 

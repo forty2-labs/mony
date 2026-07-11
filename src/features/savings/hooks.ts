@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import {
   contribute,
   createGoal,
   deleteGoal,
   listGoals,
-  updateGoal,
   type SavingsGoalInput,
+  updateGoal,
 } from './api';
 
 const KEY = ['savings'] as const;

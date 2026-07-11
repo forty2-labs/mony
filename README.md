@@ -9,13 +9,13 @@ with strict Row Level Security on the back end.
 
 ## Features by phase
 
-| Phase | Scope | Status |
-| ----- | ----- | ------ |
-| 1 | Project setup, Supabase + Auth, schema + RLS, theme system, app shell | ✅ Done |
-| 2 | Expenses, Income, Categories, Dashboard data, Search & filtering | ⏳ Planned |
-| 3 | Budgets, Savings goals, Loans, Subscriptions | ⏳ Planned |
-| 4 | Reports & charts, Import (CSV/Excel/PDF), multi-currency refinement | ⏳ Planned |
-| 5 | Offline PWA, performance, testing, UX polish | ⏳ Planned |
+| Phase | Scope                                                                 | Status     |
+| ----- | --------------------------------------------------------------------- | ---------- |
+| 1     | Project setup, Supabase + Auth, schema + RLS, theme system, app shell | ✅ Done    |
+| 2     | Expenses, Income, Categories, Dashboard data, Search & filtering      | ⏳ Planned |
+| 3     | Budgets, Savings goals, Loans, Subscriptions                          | ⏳ Planned |
+| 4     | Reports & charts, Import (CSV/Excel/PDF), multi-currency refinement   | ⏳ Planned |
+| 5     | Offline PWA, performance, testing, UX polish                          | ⏳ Planned |
 
 ## Tech stack
 

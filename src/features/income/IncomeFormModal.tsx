@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Modal } from '@/shared/components/Modal';
+
+import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
 import { DateField } from '@/shared/components/DateField';
+import { Modal } from '@/shared/components/Modal';
 import { BASE_CURRENCY } from '@/shared/lib/env';
 import { todayISO } from '@/shared/lib/format';
 import { toBaseAmount } from '@/shared/lib/money';
-import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
-import { type IncomeInput, type IncomeWithCategory } from './api';
+
 import { useCategories } from '../categories/hooks';
+import { type IncomeInput, type IncomeWithCategory } from './api';
 
 export function IncomeFormModal({
   open,
@@ -47,7 +49,7 @@ function IncomeForm({
 }) {
   const { data: categories } = useCategories();
   const incomeCats = (categories ?? []).filter((c) => c.kind === 'income');
-  
+
   const [date, setDate] = useState(() => initial?.occurred_on ?? todayISO());
   const [categoryId, setCategoryId] = useState(() => initial?.category_id ?? '');
   const [notes, setNotes] = useState(() => initial?.notes ?? '');

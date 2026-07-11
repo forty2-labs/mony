@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+
 import { cn } from '../lib/cn';
 import { Icon, type IconName } from './Icon';
 
@@ -53,9 +54,7 @@ export function StatCard({
         style={{ background: a.glow }}
       />
       <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-content-muted">
-          {label}
-        </p>
+        <p className="text-xs font-medium uppercase tracking-wide text-content-muted">{label}</p>
         {icon ? (
           <span className={cn('grid h-8 w-8 place-items-center rounded-xl', a.chip)}>
             <Icon name={icon} size={16} />
