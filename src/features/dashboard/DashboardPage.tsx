@@ -15,7 +15,8 @@ import { cn } from '@/shared/lib/cn';
 import { formatDate, formatMoney } from '@/shared/lib/format';
 
 import { type CategorySlice, currentMonth, monthLabel, type RecentTx, shiftMonth } from './api';
-import { useDashboard } from './hooks';
+import { ExpenseHeatmap } from './ExpenseHeatmap';
+import { useDashboard, useExpenseHeatmap } from './hooks';
 
 // Recharts is heavy — split it into its own chunk loaded on demand.
 const TrendChart = lazy(() => import('./DashboardCharts').then((m) => ({ default: m.TrendChart })));
@@ -26,6 +27,7 @@ export function DashboardPage() {
 
   const [month, setMonth] = useState(currentMonth());
   const { data, isLoading } = useDashboard(month);
+  const { data: heatmap, isLoading: heatmapLoading } = useExpenseHeatmap();
   const { create } = useExpenseMutations();
   const toast = useToast();
   const [quickAdd, setQuickAdd] = useState(false);
@@ -125,15 +127,27 @@ export function DashboardPage() {
 
       {/* Charts */}
       <div className="mt-4 grid grid-cols-1 items-stretch gap-4 lg:grid-cols-5">
-        <div className="card flex flex-col p-5 lg:col-span-3">
-          <h2 className="mb-4 text-sm font-semibold">Income vs expenses · last 6 months</h2>
-          <div className="flex flex-1 items-center">
-            {isLoading || !data ? (
-              <Skeleton className="h-64 w-full" />
+        <div className="lg:col-span-3">
+          <div className="card flex flex-col p-5">
+            <h2 className="mb-4 text-sm font-semibold">Income vs expenses · last 6 months</h2>
+            <div className="flex flex-1 items-center">
+              {isLoading || !data ? (
+                <Skeleton className="h-64 w-full" />
+              ) : (
+                <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                  <TrendChart data={data.trend} />
+                </Suspense>
+              )}
+            </div>
+          </div>
+
+          {/* Expense activity heatmap */}
+          <div className="mt-4 card p-5">
+            <h2 className="mb-4 text-sm font-semibold">Expense activity · last year</h2>
+            {heatmapLoading || !heatmap ? (
+              <Skeleton className="h-32 w-full" />
             ) : (
-              <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                <TrendChart data={data.trend} />
-              </Suspense>
+              <ExpenseHeatmap data={heatmap} />
             )}
           </div>
         </div>
