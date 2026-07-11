@@ -4,7 +4,6 @@ import { useCategories } from '@/features/categories/hooks';
 import { fetchRateToBase } from '@/features/fx/fxService';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Icon } from '@/shared/components/Icon';
-import { Modal } from '@/shared/components/Modal';
 import { StatCard } from '@/shared/components/StatCard';
 import { cn } from '@/shared/lib/cn';
 import { CURRENCIES } from '@/shared/lib/currencies';
@@ -26,40 +25,12 @@ type TypeFilter = 'all' | 'expense' | 'income';
 const cellClass =
   'w-full rounded-lg border border-border bg-surface px-2 py-1 text-xs text-content outline-none transition focus:border-brand focus:ring-1 focus:ring-brand/30';
 
-export function ImportReviewModal({
-  open,
-  outcome,
-  onClose,
-  onConfirm,
-  importing,
-}: {
-  open: boolean;
-  outcome: ParseOutcome | null;
-  onClose: () => void;
-  onConfirm: (payload: BulkImportPayload) => void;
-  importing?: boolean;
-}) {
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={outcome ? `Review import · ${outcome.parserLabel}` : 'Review import'}
-      widthClass="max-w-6xl"
-    >
-      {outcome && (
-        <ReviewTable
-          key={outcome.transactions[0]?.rowId ?? 'empty'}
-          outcome={outcome}
-          onCancel={onClose}
-          onConfirm={onConfirm}
-          importing={importing}
-        />
-      )}
-    </Modal>
-  );
-}
-
-function ReviewTable({
+/**
+ * Inline review step for a parsed statement. Rendered directly on the import
+ * page (not in a modal) so an accidental outside-click can never discard the
+ * user's edits — leaving is always an explicit Back/Cancel.
+ */
+export function ImportReview({
   outcome,
   onCancel,
   onConfirm,
@@ -234,6 +205,26 @@ function ReviewTable({
 
   return (
     <div className="space-y-4">
+      {/* Header — leaving is always an explicit action, never an outside-click. */}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="btn-ghost border border-border"
+          disabled={importing}
+        >
+          <Icon name="chevron-left" size={16} />
+          Back
+        </button>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Review import</h2>
+          <p className="text-xs text-content-muted">
+            {outcome.parserLabel} · adjust rows below, then import. Nothing is saved until you
+            confirm.
+          </p>
+        </div>
+      </div>
+
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard
@@ -328,7 +319,7 @@ function ReviewTable({
           />
         </div>
       ) : (
-        <div className="max-h-[52vh] overflow-auto rounded-xl border border-border">
+        <div className="max-h-[60vh] overflow-auto rounded-xl border border-border">
           <table className="w-full border-collapse text-left text-xs">
             <thead className="sticky top-0 z-10 bg-surface-2 text-content-muted">
               <tr>
@@ -380,6 +371,10 @@ function ReviewTable({
                       'align-top',
                       !v.valid && 'bg-danger/5',
                       v.valid && row.notes.length > 0 && 'bg-warning/5',
+                      v.valid &&
+                        row.notes.length === 0 &&
+                        row.internalTransfer &&
+                        'bg-surface-2/50',
                     )}
                   >
                     <td className="px-2 py-2">
@@ -419,6 +414,15 @@ function ReviewTable({
                         onChange={(e) => patch(row.rowId, { description: e.target.value })}
                         placeholder="Description"
                       />
+                      {row.internalTransfer && (
+                        <span
+                          className="mt-1 inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-content-muted"
+                          title="Matches a configured own-account name — pre-deselected. Tick the box to include it."
+                        >
+                          <Icon name="import" size={11} />
+                          Between your accounts
+                        </span>
+                      )}
                     </td>
                     <td className="px-2 py-2">
                       <select
@@ -520,7 +524,7 @@ function ReviewTable({
             : 'Only selected, valid rows are imported.'}
         </p>
         <div className="flex gap-2">
-          <button type="button" className="btn-ghost" onClick={onCancel}>
+          <button type="button" className="btn-ghost" onClick={onCancel} disabled={importing}>
             Cancel
           </button>
           <button

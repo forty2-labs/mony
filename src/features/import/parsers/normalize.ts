@@ -1,4 +1,4 @@
-import { BASE_CURRENCY } from '@/shared/lib/env';
+import { BASE_CURRENCY, INTERNAL_TRANSFER_NAMES } from '@/shared/lib/env';
 import { toBaseAmount } from '@/shared/lib/money';
 
 import type { StatementRow } from './csv';
@@ -69,8 +69,32 @@ export function draftFromSigned(params: {
     categoryId: null,
     suggestedCategory: params.suggestedCategory?.trim() || null,
     notes: params.notes ?? [],
+    internalTransfer: false,
     raw,
   };
+}
+
+/**
+ * True when `text` names one of the configured own-account identities — i.e. the
+ * row is a transfer between the user's own accounts. Case-insensitive substring
+ * match against `INTERNAL_TRANSFER_NAMES`. Empty config → always false.
+ */
+export function isInternalTransfer(text: string): boolean {
+  if (INTERNAL_TRANSFER_NAMES.length === 0) return false;
+  const hay = text.toLowerCase();
+  return INTERNAL_TRANSFER_NAMES.some((name) => hay.includes(name));
+}
+
+/**
+ * Flag transfers between the user's own accounts across a parsed batch: mark
+ * them `internalTransfer` and pre-deselect them, leaving the user to opt any
+ * back in. Parser-agnostic, so it runs once after any parser produces drafts.
+ */
+export function flagInternalTransfers(drafts: DraftTransaction[]): DraftTransaction[] {
+  if (INTERNAL_TRANSFER_NAMES.length === 0) return drafts;
+  return drafts.map((d) =>
+    isInternalTransfer(d.description) ? { ...d, internalTransfer: true, selected: false } : d,
+  );
 }
 
 export interface RowValidation {

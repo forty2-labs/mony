@@ -22,6 +22,12 @@ export interface DraftTransaction {
   suggestedCategory: string | null;
   /** Parser diagnostics worth the user's attention (e.g. "Pending", "Reverted"). */
   notes: string[];
+  /**
+   * True when the row looks like a transfer between the user's own accounts
+   * (counterparty matches a configured name). Pre-deselected in the review
+   * modal because these net to zero across accounts.
+   */
+  internalTransfer: boolean;
   raw: StatementRow;
 }
 

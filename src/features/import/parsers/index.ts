@@ -1,10 +1,16 @@
 import { parseDelimited } from './csv';
 import { monzoParser } from './monzo';
+import { flagInternalTransfers } from './normalize';
 import { revolutParser } from './revolut';
 import type { ParseOutcome, StatementParser } from './types';
 import { wiseParser } from './wise';
 
-export { draftBaseAmount, validateDraft } from './normalize';
+export {
+  draftBaseAmount,
+  flagInternalTransfers,
+  isInternalTransfer,
+  validateDraft,
+} from './normalize';
 export type { DraftTransaction, ParseOutcome, StatementParser, TxnType } from './types';
 
 /** Registry — add a new bank here and it appears everywhere automatically. */
@@ -49,7 +55,8 @@ export function parseStatement(text: string, parserId?: string): ParseOutcome {
   return {
     parserId: parser.id,
     parserLabel: parser.label,
-    transactions: parser.parse(table.rows),
+    // Flag between-your-accounts transfers once, regardless of which parser ran.
+    transactions: flagInternalTransfers(parser.parse(table.rows)),
     skipped: table.skipped,
   };
 }
