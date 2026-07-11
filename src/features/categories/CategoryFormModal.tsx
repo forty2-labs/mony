@@ -6,8 +6,14 @@ import type { CategoryRow } from '@/shared/types/database';
 import type { CategoryInput, CategoryKind } from './api';
 
 const PALETTE = [
-  '#34A368', '#0A84FF', '#5E5CE6', '#FF375F', '#FF9F0A',
-  '#30D158', '#64D2FF', '#E8A23A', '#8E8E93', '#98989D',
+  // greens / teals / cyans  (first entry is the default for new categories)
+  '#34A368', '#30D158', '#4BE0A8', '#40C8C0', '#64D2FF',
+  // blues / indigos / purples
+  '#0A84FF', '#409CFF', '#5E5CE6', '#7D7AFF', '#BF5AF2', '#DA8FFF',
+  // pinks / reds / oranges / yellows
+  '#FF6AC2', '#FF375F', '#FF453A', '#FF6482', '#FF9F0A', '#FF8A3D', '#E8A23A', '#FFD60A',
+  // browns / neutrals
+  '#AC7B5A', '#A2845E', '#8E8E93', '#98989D', '#636366',
 ];
 
 const DEFAULT_ICON: IconName = 'tag';
