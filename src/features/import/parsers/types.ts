@@ -1,4 +1,3 @@
-import type { IncomeSource } from '@/shared/types/database';
 import type { StatementRow } from './csv';
 
 export type TxnType = 'expense' | 'income';
@@ -19,7 +18,6 @@ export interface DraftTransaction {
   currencyOriginal: string;
   exchangeRate: number; // original -> base
   categoryId: string | null;
-  source: IncomeSource; // used when type === 'income'
   /** Raw category text from the statement, for later auto-mapping. */
   suggestedCategory: string | null;
   /** Parser diagnostics worth the user's attention (e.g. "Pending", "Reverted"). */

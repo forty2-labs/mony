@@ -46,7 +46,7 @@ interface IncomeLite {
   id: string;
   amount_base: number;
   occurred_on: string;
-  source: string;
+  category: { name: string; color: string | null; icon: string | null } | null;
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -112,7 +112,7 @@ export async function fetchDashboard(month: string): Promise<DashboardData> {
         .limit(5),
       supabase
         .from('income')
-        .select('id, amount_base, occurred_on, source')
+        .select('id, amount_base, occurred_on, category:categories(name, color, icon)')
         .is('deleted_at', null)
         .order('occurred_on', { ascending: false })
         .limit(5),
@@ -182,9 +182,9 @@ export async function fetchDashboard(month: string): Promise<DashboardData> {
     ...recentInc.map((i) => ({
       id: i.id,
       kind: 'income' as const,
-      label: i.source,
-      icon: null,
-      color: null,
+      label: i.category?.name ?? 'Income',
+      icon: i.category?.icon ?? null,
+      color: i.category?.color ?? null,
       date: i.occurred_on,
       amountBase: Number(i.amount_base),
     })),

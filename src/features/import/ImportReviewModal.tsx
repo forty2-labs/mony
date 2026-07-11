@@ -4,7 +4,6 @@ import { Icon } from '@/shared/components/Icon';
 import { StatCard } from '@/shared/components/StatCard';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { useCategories } from '@/features/categories/hooks';
-import { INCOME_SOURCES } from '@/features/income/api';
 import { fetchRateToBase } from '@/features/fx/fxService';
 import { CURRENCIES } from '@/shared/lib/currencies';
 import { BASE_CURRENCY } from '@/shared/lib/env';
@@ -235,7 +234,7 @@ function ReviewTable({
         notes: r.description.trim() || null,
       };
       if (r.type === 'expense') payload.expenses.push(common);
-      else payload.income.push({ ...common, source: r.source });
+      else payload.income.push(common);
     }
     onConfirm(payload);
   };
@@ -411,24 +410,6 @@ function ReviewTable({
                         <option value="expense">Expense</option>
                         <option value="income">Income</option>
                       </select>
-                      {row.type === 'income' && (
-                        <select
-                          className={cn(cellClass, 'mt-1 w-24')}
-                          value={row.source}
-                          onChange={(e) =>
-                            patch(row.rowId, {
-                              source: e.target.value as DraftTransaction['source'],
-                            })
-                          }
-                          aria-label="Income source"
-                        >
-                          {INCOME_SOURCES.map((s) => (
-                            <option key={s.value} value={s.value}>
-                              {s.label}
-                            </option>
-                          ))}
-                        </select>
-                      )}
                     </td>
                     <td className="px-2 py-2">
                       <input

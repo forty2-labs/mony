@@ -201,7 +201,7 @@ export interface Database {
       >;
       income: TableDef<
         IncomeRow,
-        Insertable<IncomeRow, ServerManaged | 'deleted_at'>,
+        Insertable<IncomeRow, ServerManaged | 'deleted_at' | 'source'>,
         Partial<IncomeRow>
       >;
       budgets: TableDef<

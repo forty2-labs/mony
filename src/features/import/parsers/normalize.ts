@@ -66,7 +66,6 @@ export function draftFromSigned(params: {
     currencyOriginal,
     exchangeRate: 1,
     categoryId: null,
-    source: 'other',
     suggestedCategory: params.suggestedCategory?.trim() || null,
     notes: params.notes ?? [],
     raw,
