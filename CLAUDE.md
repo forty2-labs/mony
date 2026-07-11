@@ -31,7 +31,7 @@ This project follows a **mandatory phased build** with an approval gate. Do not 
 
 - **Phase 1 (done):** foundation — setup, Supabase + Auth, schema + RLS, theme, app shell.
 - **Phase 2 (done):** Expenses, Income, Categories (full CRUD), live Dashboard data, search & filtering, FX auto-fetch.
-- **Phase 3:** Budgets, Savings goals, Loans, Subscriptions.
+- **Phase 3 (done):** Budgets, Savings goals, Loans, Subscriptions.
 - **Phase 4:** Reports & charts, Import (CSV/Excel/PDF), multi-currency refinement.
 - **Phase 5:** Offline PWA, performance, testing, UX polish.
 
@@ -64,6 +64,7 @@ This project follows a **mandatory phased build** with an approval gate. Do not 
 
 - **Theming:** never hardcode colors. Use the semantic Tailwind tokens (`bg`, `surface`, `surface-2`, `border`, `content`, `content-muted`, `brand`, `success`, `danger`, `warning`) which resolve to CSS variables defined per-theme in [src/index.css](src/index.css). Reusable classes: `.card`, `.input`, `.btn-primary`, `.btn-ghost`. Dark mode is class-based on `<html>`.
 - **Icons:** add to the inline set in [src/shared/components/Icon.tsx](src/shared/components/Icon.tsx) (no icon library is installed).
-- **Imports:** use the `@/` alias for `src/`.
+- **Imports:** use the `@/` alias for `src/`. Ordering is enforced by ESLint (`simple-import-sort`), so let `npm run lint:fix` sort them — don't hand-order. Groups: third-party → `@/` alias → relative `./`, blank-line separated and alphabetized within each group. Unused imports are auto-removed (`unused-imports`).
+- **Formatting:** owned by Prettier ([.prettierrc.json](.prettierrc.json)) — run `npm run format` (or wire up format-on-save). Never hand-format; `eslint-config-prettier` keeps ESLint from fighting it.
 - **Forms:** React Hook Form + Zod for standalone forms (e.g. login). Modal CRUD forms (expense/income/category) use local `useState` + manual validation because they embed the async, self-managing `CurrencyAmountField`.
 - **Shared UI primitives:** `Modal`, `Toast` (via `useToast()`, provider in App tree), `Skeleton`, `EmptyState`, `FilterBar`, `StatCard`, `PageHeader`. Prefer these over bespoke versions.
