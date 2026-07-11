@@ -1,18 +1,20 @@
 import { supabase } from '@/shared/lib/supabase';
-import type { IncomeRow, IncomeSource } from '@/shared/types/database';
+import type { IncomeRow } from '@/shared/types/database';
 
-export const INCOME_SOURCES: { value: IncomeSource; label: string }[] = [
-  { value: 'salary', label: 'Salary' },
-  { value: 'freelance', label: 'Freelance' },
-  { value: 'investment', label: 'Investment' },
-  { value: 'interest', label: 'Interest' },
-  { value: 'refund', label: 'Refund' },
-  { value: 'other', label: 'Other' },
-];
+export interface IncomeCategoryRef {
+  id: string;
+  name: string;
+  color: string | null;
+  icon: string | null;
+}
+
+export interface IncomeWithCategory extends IncomeRow {
+  category: IncomeCategoryRef | null;
+}
 
 export interface IncomeFilters {
   search?: string;
-  source?: IncomeSource | null;
+  categoryId?: string | null;
   currency?: string | null;
   from?: string | null;
   to?: string | null;
@@ -22,7 +24,6 @@ export interface IncomeFilters {
 }
 
 export interface IncomeInput {
-  source: IncomeSource;
   category_id: string | null;
   amount_original: number;
   currency_original: string;
@@ -32,6 +33,8 @@ export interface IncomeInput {
   notes: string | null;
 }
 
+const SELECT = '*, category:categories(id, name, color, icon)';
+
 async function currentUserId(): Promise<string> {
   const { data } = await supabase.auth.getUser();
   const id = data.user?.id;
@@ -39,10 +42,12 @@ async function currentUserId(): Promise<string> {
   return id;
 }
 
-export async function listIncome(filters: IncomeFilters = {}): Promise<IncomeRow[]> {
-  let q = supabase.from('income').select('*').is('deleted_at', null);
+export async function listIncome(
+  filters: IncomeFilters = {},
+): Promise<IncomeWithCategory[]> {
+  let q = supabase.from('income').select(SELECT).is('deleted_at', null);
 
-  if (filters.source) q = q.eq('source', filters.source);
+  if (filters.categoryId) q = q.eq('category_id', filters.categoryId);
   if (filters.currency) q = q.eq('currency_original', filters.currency);
   if (filters.from) q = q.gte('occurred_on', filters.from);
   if (filters.to) q = q.lte('occurred_on', filters.to);
@@ -68,7 +73,7 @@ export async function listIncome(filters: IncomeFilters = {}): Promise<IncomeRow
 
   const { data, error } = await q;
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as unknown as IncomeWithCategory[];
 }
 
 export async function createIncome(input: IncomeInput): Promise<IncomeRow> {

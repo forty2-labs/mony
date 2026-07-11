@@ -5,8 +5,8 @@ import { BASE_CURRENCY } from '@/shared/lib/env';
 import { todayISO } from '@/shared/lib/format';
 import { toBaseAmount } from '@/shared/lib/money';
 import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
-import type { IncomeRow, IncomeSource } from '@/shared/types/database';
-import { INCOME_SOURCES, type IncomeInput } from './api';
+import { type IncomeInput, type IncomeWithCategory } from './api';
+import { useCategories } from '../categories/hooks';
 
 export function IncomeFormModal({
   open,
@@ -18,7 +18,7 @@ export function IncomeFormModal({
   open: boolean;
   onClose: () => void;
   onSubmit: (input: IncomeInput) => void;
-  initial?: IncomeRow | null;
+  initial?: IncomeWithCategory | null;
   saving?: boolean;
 }) {
   return (
@@ -40,13 +40,16 @@ function IncomeForm({
   onSubmit,
   saving,
 }: {
-  initial?: IncomeRow | null;
+  initial?: IncomeWithCategory | null;
   onCancel: () => void;
   onSubmit: (input: IncomeInput) => void;
   saving?: boolean;
 }) {
+  const { data: categories } = useCategories();
+  const incomeCats = (categories ?? []).filter((c) => c.kind === 'income');
+  
   const [date, setDate] = useState(() => initial?.occurred_on ?? todayISO());
-  const [source, setSource] = useState<IncomeSource>(() => initial?.source ?? 'salary');
+  const [categoryId, setCategoryId] = useState(() => initial?.category_id ?? '');
   const [notes, setNotes] = useState(() => initial?.notes ?? '');
   const [money, setMoney] = useState<MoneyValue>(() =>
     initial
@@ -68,8 +71,7 @@ function IncomeForm({
     e.preventDefault();
     if (!valid) return;
     onSubmit({
-      source,
-      category_id: null,
+      category_id: categoryId || null,
       amount_original: money.amountOriginal,
       currency_original: money.currencyOriginal,
       exchange_rate: money.exchangeRate,
@@ -95,17 +97,18 @@ function IncomeForm({
         </div>
         <div>
           <label className="mb-1.5 block text-sm font-medium" htmlFor="inc-source">
-            Source
+            Category
           </label>
           <select
             id="inc-source"
             className="input"
-            value={source}
-            onChange={(e) => setSource(e.target.value as IncomeSource)}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
           >
-            {INCOME_SOURCES.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
+            <option value="">Uncategorised</option>
+            {incomeCats.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
               </option>
             ))}
           </select>
