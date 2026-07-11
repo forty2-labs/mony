@@ -9,13 +9,23 @@ import { Icon } from './Icon';
 export function DateField({
   value,
   onChange,
+  min,
   max,
   id,
+  placeholder = 'Select date',
+  clearable = false,
+  presets = true,
+  className,
 }: {
   value: string; // YYYY-MM-DD
   onChange: (next: string) => void;
+  min?: string; // YYYY-MM-DD (inclusive)
   max?: string; // YYYY-MM-DD (inclusive)
   id?: string;
+  placeholder?: string;
+  clearable?: boolean;
+  presets?: boolean;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -57,11 +67,15 @@ export function DateField({
     setView(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`);
   };
 
+  const outOfRange = (iso: string) => (!!max && iso > max) || (!!min && iso < min);
+
   const pick = (iso: string) => {
-    if (max && iso > max) return;
+    if (outOfRange(iso)) return;
     onChange(iso);
     setOpen(false);
   };
+
+  const showClear = clearable && !!value;
 
   return (
     <div className="relative" ref={ref}>
@@ -69,13 +83,31 @@ export function DateField({
         type="button"
         id={id}
         onClick={() => setOpen((v) => !v)}
-        className="input flex items-center justify-between gap-2 text-left"
+        className={cn(
+          'input flex items-center justify-between gap-2 text-left',
+          showClear && 'pr-9',
+          className,
+        )}
       >
-        <span className={cn(!value && 'text-content-muted')}>
-          {value ? formatDate(value) : 'Select date'}
+        <span className={cn('truncate', !value && 'text-content-muted')}>
+          {value ? formatDate(value) : placeholder}
         </span>
-        <Icon name="calendar" size={16} className="text-content-muted" />
+        {!showClear && <Icon name="calendar" size={16} className="shrink-0 text-content-muted" />}
       </button>
+
+      {showClear && (
+        <button
+          type="button"
+          aria-label="Clear date"
+          onClick={(e) => {
+            e.stopPropagation();
+            onChange('');
+          }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-content-muted transition hover:bg-surface-2 hover:text-content"
+        >
+          <Icon name="close" size={14} />
+        </button>
+      )}
 
       <AnimatePresence>
         {open && (
@@ -115,7 +147,7 @@ export function DateField({
                 if (!cell) return <span key={Math.random()} />;
                 const isSelected = cell.iso === value;
                 const isToday = cell.iso === todayISO();
-                const disabled = !!max && cell.iso > max;
+                const disabled = outOfRange(cell.iso);
                 return (
                   <button
                     key={cell.iso}
@@ -136,22 +168,26 @@ export function DateField({
               })}
             </div>
 
-            <div className="mt-2 flex gap-1.5 border-t border-border pt-2">
-              <button
-                type="button"
-                onClick={() => pick(todayISO())}
-                className="btn-ghost h-8 flex-1 px-2 text-xs"
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                onClick={() => pick(addDays(todayISO(), -1))}
-                className="btn-ghost h-8 flex-1 px-2 text-xs"
-              >
-                Yesterday
-              </button>
-            </div>
+            {presets && (
+              <div className="mt-2 flex gap-1.5 border-t border-border pt-2">
+                <button
+                  type="button"
+                  disabled={outOfRange(todayISO())}
+                  onClick={() => pick(todayISO())}
+                  className="btn-ghost h-8 flex-1 px-2 text-xs disabled:opacity-40"
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  disabled={outOfRange(addDays(todayISO(), -1))}
+                  onClick={() => pick(addDays(todayISO(), -1))}
+                  className="btn-ghost h-8 flex-1 px-2 text-xs disabled:opacity-40"
+                >
+                  Yesterday
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
