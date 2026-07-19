@@ -209,7 +209,7 @@ function CategoryBars({ data }: { data: CategorySlice[] }) {
     return <EmptyState icon="budgets" title="No spending this month yet" />;
   }
 
-  const MAX_ROWS = 7;
+  const MAX_ROWS = 8;
   const rows: CategorySlice[] =
     data.length > MAX_ROWS
       ? [
