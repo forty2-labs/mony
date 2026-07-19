@@ -31,6 +31,8 @@ export type IconName =
   | 'calendar'
   | 'chevron-left'
   | 'chevron-right'
+  | 'chevron-up'
+  | 'chevron-down'
   | 'import'
   | 'file'
   | 'alert'
@@ -263,6 +265,8 @@ const paths: Record<IconName, JSX.Element> = {
   ),
   'chevron-left': <path d="M15 6l-6 6 6 6" />,
   'chevron-right': <path d="M9 6l6 6-6 6" />,
+  'chevron-up': <path d="M6 15l6-6 6 6" />,
+  'chevron-down': <path d="M6 9l6 6 6-6" />,
   import: (
     <>
       <path d="M12 3v11" />

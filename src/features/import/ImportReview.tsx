@@ -4,6 +4,7 @@ import { useCategories } from '@/features/categories/hooks';
 import { fetchRateToBase } from '@/features/fx/fxService';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Icon } from '@/shared/components/Icon';
+import { Select } from '@/shared/components/Select';
 import { StatCard } from '@/shared/components/StatCard';
 import { cn } from '@/shared/lib/cn';
 import { CURRENCIES } from '@/shared/lib/currencies';
@@ -23,7 +24,10 @@ type SortKey = 'date' | 'amount';
 type TypeFilter = 'all' | 'expense' | 'income';
 
 const cellClass =
-  'w-full rounded-lg border border-border bg-surface px-2 py-1 text-xs text-content outline-none transition focus:border-brand focus:ring-1 focus:ring-brand/30';
+  'w-full rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-content outline-none transition hover:border-content-muted/40 focus:border-brand focus:ring-1 focus:ring-brand/30';
+
+const HEAD_CELL = 'px-3 py-3 font-semibold';
+const BODY_CELL = 'px-3 py-3';
 
 /**
  * Inline review step for a parsed statement. Rendered directly on the import
@@ -270,8 +274,9 @@ export function ImportReview({
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <select
-          className="input w-auto"
+        <Select
+          className="w-auto"
+          wrapperClassName="w-auto"
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
           aria-label="Filter by type"
@@ -279,7 +284,7 @@ export function ImportReview({
           <option value="all">All types</option>
           <option value="expense">Expenses</option>
           <option value="income">Income</option>
-        </select>
+        </Select>
         <button
           type="button"
           onClick={() => setAttentionOnly((v) => !v)}
@@ -319,11 +324,11 @@ export function ImportReview({
           />
         </div>
       ) : (
-        <div className="max-h-[60vh] overflow-auto rounded-xl border border-border">
+        <div className="max-h-[60vh] overflow-auto rounded-xl border border-border shadow-soft">
           <table className="w-full border-collapse text-left text-xs">
-            <thead className="sticky top-0 z-10 bg-surface-2 text-content-muted">
-              <tr>
-                <th className="w-8 px-2 py-2">
+            <thead className="sticky top-0 z-10 border-b border-border bg-surface-2/95 text-[11px] uppercase tracking-wide text-content-muted backdrop-blur">
+              <tr className="[&>th]:border-b [&>th]:border-border">
+                <th className="w-10 px-3 py-3">
                   <input
                     ref={headerCheckRef}
                     type="checkbox"
@@ -332,29 +337,28 @@ export function ImportReview({
                     aria-label="Select all shown"
                   />
                 </th>
-                <th className="px-2 py-2 font-medium">Type</th>
-                <th className="px-2 py-2 font-medium">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1"
+                <th className={HEAD_CELL}>Type</th>
+                <th className={HEAD_CELL}>
+                  <SortButton
+                    label="Date"
+                    active={sortKey === 'date'}
+                    asc={sortAsc}
                     onClick={() => toggleSort('date')}
-                  >
-                    Date {sortKey === 'date' ? (sortAsc ? '↑' : '↓') : ''}
-                  </button>
+                  />
                 </th>
-                <th className="min-w-[200px] px-2 py-2 font-medium">Description</th>
-                <th className="min-w-[140px] px-2 py-2 font-medium">Category</th>
-                <th className="px-2 py-2 text-right font-medium">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1"
+                <th className={cn(HEAD_CELL, 'min-w-[200px]')}>Description</th>
+                <th className={cn(HEAD_CELL, 'min-w-[140px]')}>Category</th>
+                <th className={cn(HEAD_CELL, 'text-right')}>
+                  <SortButton
+                    label="Amount"
+                    active={sortKey === 'amount'}
+                    asc={sortAsc}
                     onClick={() => toggleSort('amount')}
-                  >
-                    Amount {sortKey === 'amount' ? (sortAsc ? '↑' : '↓') : ''}
-                  </button>
+                    alignRight
+                  />
                 </th>
-                <th className="px-2 py-2 text-right font-medium">Base</th>
-                <th className="w-8 px-2 py-2" />
+                <th className={cn(HEAD_CELL, 'text-right')}>Base</th>
+                <th className="w-10 px-3 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -368,16 +372,17 @@ export function ImportReview({
                   <tr
                     key={row.rowId}
                     className={cn(
-                      'align-top',
+                      'align-top transition-colors',
                       !v.valid && 'bg-danger/5',
                       v.valid && row.notes.length > 0 && 'bg-warning/5',
                       v.valid &&
                         row.notes.length === 0 &&
                         row.internalTransfer &&
                         'bg-surface-2/50',
+                      'hover:bg-surface-2/40',
                     )}
                   >
-                    <td className="px-2 py-2">
+                    <td className={BODY_CELL}>
                       <input
                         type="checkbox"
                         checked={row.selected}
@@ -385,21 +390,23 @@ export function ImportReview({
                         aria-label="Select row"
                       />
                     </td>
-                    <td className="px-2 py-2">
-                      <select
+                    <td className={BODY_CELL}>
+                      <Select
+                        bare
                         className={cn(
                           cellClass,
-                          'w-24 font-medium',
+                          'font-medium',
                           row.type === 'expense' ? 'text-danger' : 'text-success',
                         )}
+                        wrapperClassName="w-24"
                         value={row.type}
                         onChange={(e) => changeType(row, e.target.value as TxnType)}
                       >
                         <option value="expense">Expense</option>
                         <option value="income">Income</option>
-                      </select>
+                      </Select>
                     </td>
-                    <td className="px-2 py-2">
+                    <td className={BODY_CELL}>
                       <input
                         type="date"
                         className={cn(cellClass, 'w-36')}
@@ -407,7 +414,7 @@ export function ImportReview({
                         onChange={(e) => patch(row.rowId, { occurredOn: e.target.value })}
                       />
                     </td>
-                    <td className="px-2 py-2">
+                    <td className={BODY_CELL}>
                       <input
                         className={cellClass}
                         value={row.description}
@@ -424,8 +431,9 @@ export function ImportReview({
                         </span>
                       )}
                     </td>
-                    <td className="px-2 py-2">
-                      <select
+                    <td className={BODY_CELL}>
+                      <Select
+                        bare
                         className={cellClass}
                         value={row.categoryId ?? ''}
                         onChange={(e) => patch(row.rowId, { categoryId: e.target.value || null })}
@@ -436,9 +444,9 @@ export function ImportReview({
                             {c.name}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </td>
-                    <td className="px-2 py-2">
+                    <td className={BODY_CELL}>
                       <div className="flex items-center justify-end gap-1">
                         <input
                           type="number"
@@ -452,8 +460,10 @@ export function ImportReview({
                             })
                           }
                         />
-                        <select
-                          className={cn(cellClass, 'w-20')}
+                        <Select
+                          bare
+                          className={cellClass}
+                          wrapperClassName="w-20 shrink-0"
                           value={row.currencyOriginal}
                           onChange={(e) => changeCurrency(row, e.target.value)}
                           aria-label="Currency"
@@ -463,7 +473,7 @@ export function ImportReview({
                               {c.code}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       </div>
                       {foreign && (
                         <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-content-muted">
@@ -483,7 +493,7 @@ export function ImportReview({
                         </div>
                       )}
                     </td>
-                    <td className="px-2 py-2 text-right">
+                    <td className={cn(BODY_CELL, 'text-right')}>
                       <div className="flex items-center justify-end gap-1.5">
                         {attention && (
                           <span
@@ -498,12 +508,12 @@ export function ImportReview({
                         </span>
                       </div>
                     </td>
-                    <td className="px-2 py-2">
+                    <td className={BODY_CELL}>
                       <button
                         type="button"
                         onClick={() => setRows((prev) => prev.filter((r) => r.rowId !== row.rowId))}
                         title="Remove row"
-                        className="rounded-lg p-1 text-content-muted transition hover:bg-surface-2 hover:text-danger"
+                        className="rounded-lg p-1.5 text-content-muted transition hover:bg-surface-2 hover:text-danger"
                       >
                         <Icon name="trash" size={14} />
                       </button>
@@ -540,5 +550,39 @@ export function ImportReview({
         </div>
       </div>
     </div>
+  );
+}
+
+/** Sortable column header — highlights when active and shows the direction. */
+function SortButton({
+  label,
+  active,
+  asc,
+  onClick,
+  alignRight,
+}: {
+  label: string;
+  active: boolean;
+  asc: boolean;
+  onClick: () => void;
+  alignRight?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1 uppercase tracking-wide transition hover:text-content',
+        active && 'text-content',
+        alignRight && 'flex-row-reverse',
+      )}
+    >
+      {label}
+      <Icon
+        name={active ? (asc ? 'chevron-up' : 'chevron-down') : 'chevron-down'}
+        size={12}
+        className={cn('transition', active ? 'opacity-100' : 'opacity-30')}
+      />
+    </button>
   );
 }

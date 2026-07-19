@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { Icon } from '@/shared/components/Icon';
+import { Select } from '@/shared/components/Select';
 import { cn } from '@/shared/lib/cn';
 import { CURRENCIES, currencySymbol } from '@/shared/lib/currencies';
 import { BASE_CURRENCY } from '@/shared/lib/env';
@@ -97,8 +98,8 @@ export function CurrencyAmountField({
             onChange={(e) => onChange({ ...value, amountOriginal: parseFloat(e.target.value) })}
           />
         </div>
-        <select
-          className="input w-28"
+        <Select
+          wrapperClassName="w-28 shrink-0"
           value={currencyOriginal}
           onChange={(e) => onChange({ ...value, currencyOriginal: e.target.value })}
         >
@@ -107,7 +108,7 @@ export function CurrencyAmountField({
               {c.code}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {isForeign && (

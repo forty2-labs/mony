@@ -5,6 +5,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { type CommonFilters, EMPTY_FILTERS, FilterBar } from '@/shared/components/FilterBar';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { Select } from '@/shared/components/Select';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { useToast } from '@/shared/components/Toast';
 import { currencySymbol } from '@/shared/lib/currencies';
@@ -92,8 +93,9 @@ export function IncomePage() {
           setCategoryId('');
         }}
         facet={
-          <select
-            className="input w-auto"
+          <Select
+            className="w-auto"
+            wrapperClassName="w-auto"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             aria-label="Category"
@@ -104,7 +106,7 @@ export function IncomePage() {
                 {c.name}
               </option>
             ))}
-          </select>
+          </Select>
         }
       />
 

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
 import { DateField } from '@/shared/components/DateField';
 import { Modal } from '@/shared/components/Modal';
+import { Select } from '@/shared/components/Select';
 import { BASE_CURRENCY } from '@/shared/lib/env';
 import { todayISO } from '@/shared/lib/format';
 import { toBaseAmount } from '@/shared/lib/money';
@@ -101,9 +102,8 @@ function IncomeForm({
           <label className="mb-1.5 block text-sm font-medium" htmlFor="inc-source">
             Category
           </label>
-          <select
+          <Select
             id="inc-source"
-            className="input"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
           >
@@ -113,7 +113,7 @@ function IncomeForm({
                 {c.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 

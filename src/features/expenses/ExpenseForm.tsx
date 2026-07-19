@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useCategories } from '@/features/categories/hooks';
 import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
 import { DateField } from '@/shared/components/DateField';
+import { Select } from '@/shared/components/Select';
 import { BASE_CURRENCY } from '@/shared/lib/env';
 import { todayISO } from '@/shared/lib/format';
 import { toBaseAmount } from '@/shared/lib/money';
@@ -86,9 +87,8 @@ export function ExpenseForm({
           <label className="mb-1.5 block text-sm font-medium" htmlFor="exp-cat">
             Category
           </label>
-          <select
+          <Select
             id="exp-cat"
-            className="input"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
           >
@@ -98,7 +98,7 @@ export function ExpenseForm({
                 {c.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 

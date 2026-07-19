@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { CurrencyAmountField, type MoneyValue } from '@/features/fx/CurrencyAmountField';
 import { DateField } from '@/shared/components/DateField';
 import { Modal } from '@/shared/components/Modal';
+import { Select } from '@/shared/components/Select';
 import { BASE_CURRENCY } from '@/shared/lib/env';
 import { todayISO } from '@/shared/lib/format';
 import { toBaseAmount } from '@/shared/lib/money';
@@ -118,9 +119,8 @@ function SubscriptionForm({
           <label className="mb-1.5 block text-sm font-medium" htmlFor="sub-cycle">
             Billing cycle
           </label>
-          <select
+          <Select
             id="sub-cycle"
-            className="input"
             value={cycle}
             onChange={(e) => setCycle(e.target.value as BillingCycle)}
           >
@@ -129,7 +129,7 @@ function SubscriptionForm({
                 {c.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label className="mb-1.5 block text-sm font-medium" htmlFor="sub-next">

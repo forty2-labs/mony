@@ -7,6 +7,7 @@ import { BASE_CURRENCY } from '../lib/env';
 import { formatDate, todayISO } from '../lib/format';
 import { DateField } from './DateField';
 import { Icon } from './Icon';
+import { Select } from './Select';
 
 export interface CommonFilters {
   search: string;
@@ -150,8 +151,9 @@ export function FilterBar({
 
         {facet}
 
-        <select
-          className="input w-auto"
+        <Select
+          className="w-auto"
+          wrapperClassName="w-auto"
           value={filters.sort}
           onChange={(e) => set('sort', e.target.value as CommonFilters['sort'])}
           aria-label="Sort"
@@ -160,7 +162,7 @@ export function FilterBar({
           <option value="date_asc">Oldest first</option>
           <option value="amount_desc">Highest amount</option>
           <option value="amount_asc">Lowest amount</option>
-        </select>
+        </Select>
 
         <button
           type="button"
@@ -211,10 +213,12 @@ export function FilterBar({
       <AnimatePresence initial={false}>
         {expanded && (
           <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            key="filter-panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
           >
             <div className="mt-3 space-y-3 border-t border-border pt-3">
               <div>
@@ -273,8 +277,8 @@ export function FilterBar({
                 </label>
                 <label className="text-xs text-content-muted">
                   Currency
-                  <select
-                    className="input mt-1"
+                  <Select
+                    wrapperClassName="mt-1"
                     value={filters.currency}
                     onChange={(e) => set('currency', e.target.value)}
                   >
@@ -284,7 +288,7 @@ export function FilterBar({
                         {c.code}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
                 <label className="text-xs text-content-muted">
                   Min ({BASE_CURRENCY})
