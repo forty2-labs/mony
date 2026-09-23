@@ -33,7 +33,7 @@ export const revolutParser: StatementParser = {
         raw: r,
         signedAmount: net,
         currency: r['currency'],
-        date: r['completed date'] || r['started date'],
+        date: r['started date'] || r['completed date'],
         description: r['description'] || r['type'] || '',
       });
 
