@@ -116,7 +116,7 @@ export function DateField({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="card absolute z-30 mt-2 w-[17rem] p-3 shadow-soft-lg"
+            className="card fixed z-30 mt-2 w-[17rem] p-3 shadow-soft-lg"
           >
             <div className="mb-2 flex items-center justify-between">
               <button
