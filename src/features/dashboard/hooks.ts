@@ -1,18 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchDashboard, fetchExpenseHeatmap } from './api';
+import { fetchExpenseHeatmap, fetchOverview } from './api';
 
-export function useDashboard(month: string) {
+/**
+ * All-time balance + recent activity. Keyed under the `['dashboard']` prefix so
+ * expense/income mutations invalidate it.
+ */
+export function useOverview() {
   return useQuery({
-    queryKey: ['dashboard', month],
-    queryFn: () => fetchDashboard(month),
+    queryKey: ['dashboard', 'overview'],
+    queryFn: fetchOverview,
   });
 }
 
 /**
- * Rolling ~1-year expense contribution heatmap. Keyed independently of the
- * dashboard month so switching months doesn't refetch it, but still under the
- * `['dashboard']` prefix so expense mutations invalidate it.
+ * Rolling ~1-year expense contribution heatmap. Keyed independently so the
+ * report range doesn't refetch it, but still under the `['dashboard']` prefix
+ * so expense mutations invalidate it.
  */
 export function useExpenseHeatmap() {
   return useQuery({

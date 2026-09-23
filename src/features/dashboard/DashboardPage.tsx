@@ -1,37 +1,72 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { animate, motion, useMotionValue, useTransform } from 'framer-motion';
 
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { ExpenseInput } from '@/features/expenses/api';
 import { ExpenseFormModal } from '@/features/expenses/ExpenseFormModal';
 import { useExpenseMutations } from '@/features/expenses/hooks';
+import { RANGE_OPTIONS, type RangeKey } from '@/features/reports/api';
+import { useReport } from '@/features/reports/hooks';
+import { CategoryTable, Delta, ExportMenu } from '@/features/reports/ReportSections';
 import { CategoryBadge } from '@/shared/components/CategoryBadge';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { Select } from '@/shared/components/Select';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { StatCard } from '@/shared/components/StatCard';
 import { useToast } from '@/shared/components/Toast';
 import { cn } from '@/shared/lib/cn';
 import { formatDate, formatMoney } from '@/shared/lib/format';
 
-import { type CategorySlice, currentMonth, monthLabel, type RecentTx, shiftMonth } from './api';
+import type { RecentTx } from './api';
 import { ExpenseHeatmap } from './ExpenseHeatmap';
-import { useDashboard, useExpenseHeatmap } from './hooks';
+import { useExpenseHeatmap, useOverview } from './hooks';
 
 // Recharts is heavy — split it into its own chunk loaded on demand.
-const TrendChart = lazy(() => import('./DashboardCharts').then((m) => ({ default: m.TrendChart })));
+const TrendAreaChart = lazy(() =>
+  import('@/features/reports/ReportCharts').then((m) => ({ default: m.TrendAreaChart })),
+);
+const CategoryDonut = lazy(() =>
+  import('@/features/reports/ReportCharts').then((m) => ({ default: m.CategoryDonut })),
+);
+
+/** A gentle rise-and-fade used to stagger the stat cards in on load. */
+const CARD_VARIANT = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+} as const;
+
+/** Money value that tweens from its previous figure to the new one — so totals
+ *  visibly count up on load and glide when the range changes. */
+function AnimatedMoney({ value }: { value: number }) {
+  const mv = useMotionValue(value);
+  const text = useTransform(mv, (v) => formatMoney(v));
+  useEffect(() => {
+    const controls = animate(mv, value, { duration: 0.7, ease: [0.16, 1, 0.3, 1] });
+    return () => controls.stop();
+  }, [mv, value]);
+  return <motion.span>{text}</motion.span>;
+}
+
+function greetingFor(date = new Date()): string {
+  const h = date.getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 18) return 'Good afternoon';
+  return 'Good evening';
+}
 
 export function DashboardPage() {
   const { user } = useAuth();
   const name = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'there';
 
-  const [month, setMonth] = useState(currentMonth());
-  const { data, isLoading } = useDashboard(month);
+  const [range, setRange] = useState<RangeKey>('last_6_months');
+  const { data: report, isLoading } = useReport(range);
+  const { data: overview } = useOverview();
   const { data: heatmap, isLoading: heatmapLoading } = useExpenseHeatmap();
   const { create } = useExpenseMutations();
   const toast = useToast();
   const [quickAdd, setQuickAdd] = useState(false);
-  const isCurrent = month === currentMonth();
 
   const handleQuickAdd = (input: ExpenseInput) => {
     create.mutate(input, {
@@ -46,103 +81,131 @@ export function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title={`Good to see you, ${name}`}
+        title={`${greetingFor()}, ${name}`}
         subtitle="Your financial overview at a glance."
         actions={
-          <button className="btn-primary" onClick={() => setQuickAdd(true)}>
-            <Icon name="plus" size={16} />
-            Quick add
-          </button>
+          <div data-print-hide className="flex items-center gap-2">
+            <ExportMenu data={report} />
+            <button className="btn-ghost h-9 text-sm" onClick={() => window.print()}>
+              <Icon name="file" size={16} />
+              Print / PDF
+            </button>
+            <button className="btn-primary" onClick={() => setQuickAdd(true)}>
+              <Icon name="plus" size={16} />
+              Quick add
+            </button>
+          </div>
         }
       />
 
-      {/* Month switcher */}
-      <div className="mb-4 flex items-center gap-2">
-        <div className="inline-flex items-center rounded-xl border border-border bg-surface p-1 shadow-soft">
-          <button
-            onClick={() => setMonth((m) => shiftMonth(m, -1))}
-            className="rounded-lg p-1.5 text-content-muted transition hover:bg-surface-2 hover:text-content"
-            aria-label="Previous month"
-          >
-            <Icon name="chevron-left" size={16} />
-          </button>
-          <span className="min-w-[9.5rem] text-center text-sm font-medium">
-            {monthLabel(month)}
+      {/* Range picker */}
+      <div data-print-hide className="mb-4 flex items-center gap-2">
+        <Select
+          value={range}
+          onChange={(e) => setRange(e.target.value as RangeKey)}
+          wrapperClassName="w-52"
+          aria-label="Report range"
+        >
+          {RANGE_OPTIONS.map((o) => (
+            <option key={o.key} value={o.key}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
+        {report ? (
+          <span className="text-sm text-content-muted">
+            {report.range.from} → {report.range.to}
           </span>
-          <button
-            onClick={() => setMonth((m) => shiftMonth(m, 1))}
-            disabled={isCurrent}
-            className="rounded-lg p-1.5 text-content-muted transition enabled:hover:bg-surface-2 enabled:hover:text-content disabled:opacity-40"
-            aria-label="Next month"
-          >
-            <Icon name="chevron-right" size={16} />
-          </button>
-        </div>
-        {!isCurrent && (
-          <button onClick={() => setMonth(currentMonth())} className="btn-ghost h-9 text-sm">
-            This month
-          </button>
-        )}
+        ) : null}
       </div>
 
       {/* Stat cards */}
-      {isLoading || !data ? (
+      {isLoading || !report ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-28" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Balance"
-            value={formatMoney(data.balance)}
-            accent={data.balance < 0 ? 'danger' : 'brand'}
-            icon="wallet"
-            hint="All-time income − expenses"
-          />
-          <StatCard
-            label="Income"
-            value={formatMoney(data.monthIncome)}
-            accent="success"
-            icon="income"
-            hint={monthLabel(month, { month: 'long' })}
-          />
-          <StatCard
-            label="Expenses"
-            value={formatMoney(data.monthExpenses)}
-            accent="danger"
-            icon="expenses"
-            hint={monthLabel(month, { month: 'long' })}
-          />
-          <StatCard
-            label="Net saved"
-            value={formatMoney(data.netThisMonth)}
-            accent={data.netThisMonth < 0 ? 'danger' : 'success'}
-            icon="trending-up"
-            hint="Income − expenses"
-          />
-        </div>
+        <motion.div
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          initial="hidden"
+          animate="show"
+          variants={{ show: { transition: { staggerChildren: 0.07 } } }}
+        >
+          <motion.div variants={CARD_VARIANT}>
+            <StatCard
+              label="Balance"
+              value={overview ? <AnimatedMoney value={overview.balance} /> : '—'}
+              accent={overview && overview.balance < 0 ? 'danger' : 'brand'}
+              icon="wallet"
+              hint="All-time income − expenses"
+            />
+          </motion.div>
+          <motion.div variants={CARD_VARIANT}>
+            <StatCard
+              label="Income"
+              value={<AnimatedMoney value={report.totalIncome} />}
+              accent="success"
+              icon="income"
+            >
+              <Delta
+                current={report.totalIncome}
+                previous={report.prev?.totalIncome}
+                higherIsGood
+              />
+            </StatCard>
+          </motion.div>
+          <motion.div variants={CARD_VARIANT}>
+            <StatCard
+              label="Expenses"
+              value={<AnimatedMoney value={report.totalExpenses} />}
+              accent="danger"
+              icon="expenses"
+            >
+              <Delta
+                current={report.totalExpenses}
+                previous={report.prev?.totalExpenses}
+                higherIsGood={false}
+              />
+            </StatCard>
+          </motion.div>
+          <motion.div variants={CARD_VARIANT}>
+            <StatCard
+              label="Net"
+              value={<AnimatedMoney value={report.net} />}
+              accent={report.net < 0 ? 'danger' : 'success'}
+              icon="trending-up"
+              hint={
+                report.savingsRate == null
+                  ? 'Income − expenses'
+                  : `${Math.round(report.savingsRate)}% of income saved`
+              }
+            >
+              <Delta current={report.net} previous={report.prev?.net} higherIsGood />
+            </StatCard>
+          </motion.div>
+        </motion.div>
       )}
 
-      {/* Charts */}
+      {/* Trend + category donut */}
       <div className="mt-4 grid grid-cols-1 items-stretch gap-4 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <div className="card flex flex-col p-5">
-            <h2 className="mb-4 text-sm font-semibold">Income vs expenses · last 6 months</h2>
+            <h2 className="mb-4 text-sm font-semibold">Income vs expenses</h2>
             <div className="flex flex-1 items-center">
-              {isLoading || !data ? (
-                <Skeleton className="h-64 w-full" />
+              {isLoading || !report ? (
+                <Skeleton className="h-72 w-full" />
               ) : (
-                <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-                  <TrendChart data={data.trend} />
+                <Suspense fallback={<Skeleton className="h-72 w-full" />}>
+                  <TrendAreaChart data={report.trend} />
                 </Suspense>
               )}
             </div>
           </div>
 
-          {/* Expense activity heatmap */}
-          <div className="mt-4 card p-5">
+          {/* Expense activity heatmap (rolling ~1 year, independent of range) */}
+          <div className="card mt-4 p-5">
             {heatmapLoading || !heatmap ? (
               <Skeleton className="h-32 w-full" />
             ) : (
@@ -152,37 +215,65 @@ export function DashboardPage() {
         </div>
 
         <div className="card flex flex-col p-5 lg:col-span-2">
-          <h2 className="mb-4 text-sm font-semibold">
-            Spending by category · {monthLabel(month, { month: 'long' })}
-          </h2>
-          <div className="flex flex-1 items-center">
-            {isLoading || !data ? (
-              <div className="w-full space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-9 w-full" />
+          <h2 className="mb-4 text-sm font-semibold">Where the money went</h2>
+          {isLoading || !report ? (
+            <Skeleton className="h-56 w-full" />
+          ) : report.expenseCategories.length === 0 ? (
+            <EmptyState icon="budgets" title="No spending in this range yet" />
+          ) : (
+            <>
+              <Suspense fallback={<Skeleton className="h-56 w-full" />}>
+                <CategoryDonut data={report.expenseCategories.slice(0, 8)} />
+              </Suspense>
+              <ul className="mt-4 space-y-1.5">
+                {report.expenseCategories.slice(0, 5).map((c) => (
+                  <li key={c.name} className="flex items-center gap-2 text-sm">
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: c.color }}
+                    />
+                    <span className="truncate">{c.name}</span>
+                    <span className="ml-auto shrink-0 tabular-nums text-content-muted">
+                      {Math.round(c.pct)}%
+                    </span>
+                  </li>
                 ))}
-              </div>
-            ) : (
-              <CategoryBars data={data.categoryBreakdown} />
-            )}
-          </div>
+              </ul>
+            </>
+          )}
         </div>
       </div>
 
+      {/* Full category breakdown */}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <CategoryTable
+          title="Expenses by category"
+          empty="No expenses in this range"
+          rows={report?.expenseCategories}
+          loading={isLoading}
+        />
+        <CategoryTable
+          title="Income by category"
+          empty="No income in this range"
+          rows={report?.incomeCategories}
+          loading={isLoading}
+        />
+      </div>
+
       {/* Recent activity */}
-      <div className="mt-4 card p-5">
+      <div className="card mt-4 p-5">
         <h2 className="mb-3 text-sm font-semibold">Recent activity</h2>
-        {isLoading || !data ? (
+        {!overview ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-9" />
             ))}
           </div>
-        ) : data.recent.length === 0 ? (
+        ) : overview.recent.length === 0 ? (
           <EmptyState icon="expenses" title="Nothing here yet" />
         ) : (
           <ul className="divide-y divide-border">
-            {data.recent.map((t) => (
+            {overview.recent.map((t) => (
               <RecentRow key={`${t.kind}-${t.id}`} tx={t} />
             ))}
           </ul>
@@ -196,62 +287,6 @@ export function DashboardPage() {
         saving={create.isPending}
       />
     </div>
-  );
-}
-
-/**
- * Ranked horizontal bars for the month's category spending. Bar width is
- * relative to the largest category; percentages are of the total. The long tail
- * beyond the top rows is folded into a single "Other categories" bar.
- */
-function CategoryBars({ data }: { data: CategorySlice[] }) {
-  if (data.length === 0) {
-    return <EmptyState icon="budgets" title="No spending this month yet" />;
-  }
-
-  const MAX_ROWS = 8;
-  const rows: CategorySlice[] =
-    data.length > MAX_ROWS
-      ? [
-          ...data.slice(0, MAX_ROWS - 1),
-          {
-            name: 'Other categories',
-            color: '#9aa0aa',
-            icon: null,
-            total: data.slice(MAX_ROWS - 1).reduce((a, s) => a + s.total, 0),
-          },
-        ]
-      : data;
-
-  const total = data.reduce((a, s) => a + s.total, 0);
-  const max = Math.max(...rows.map((r) => r.total), 1);
-
-  return (
-    <ul className="w-full space-y-3.5">
-      {rows.map((s) => {
-        const pct = total ? Math.round((s.total / total) * 100) : 0;
-        return (
-          <li key={s.name}>
-            <div className="mb-1.5 flex items-center gap-2 text-sm">
-              <CategoryBadge color={s.color} icon={s.icon} size={22} />
-              <span className="truncate">{s.name}</span>
-              <span className="ml-auto shrink-0 font-medium tabular-nums">
-                {formatMoney(s.total)}
-              </span>
-              <span className="w-9 shrink-0 text-right text-xs tabular-nums text-content-muted">
-                {pct}%
-              </span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-surface-2">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{ width: `${(s.total / max) * 100}%`, backgroundColor: s.color }}
-              />
-            </div>
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 

@@ -24,7 +24,6 @@ const ACCENT: Record<string, string> = {
   '/subscriptions': 'text-brand',
   '/categories': 'text-warning',
   '/import': 'text-success',
-  '/reports': 'text-brand-2',
   '/settings': 'text-content-muted',
 };
 

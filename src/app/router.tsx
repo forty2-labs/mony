@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { LoginPage } from '@/features/auth/LoginPage';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
@@ -37,9 +37,6 @@ const CategoriesPage = lazy(() =>
 const ImportPage = lazy(() =>
   import('@/features/import/ImportPage').then((m) => ({ default: m.ImportPage })),
 );
-const ReportsPage = lazy(() =>
-  import('@/features/reports/ReportsPage').then((m) => ({ default: m.ReportsPage })),
-);
 const SettingsPage = lazy(() =>
   import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 );
@@ -68,7 +65,8 @@ export const router = createBrowserRouter([
           { path: 'subscriptions', element: lazyPage(<SubscriptionsPage />) },
           { path: 'categories', element: lazyPage(<CategoriesPage />) },
           { path: 'import', element: lazyPage(<ImportPage />) },
-          { path: 'reports', element: lazyPage(<ReportsPage />) },
+          // Reports merged into the dashboard — keep old links working.
+          { path: 'reports', element: <Navigate to="/" replace /> },
           { path: 'settings', element: lazyPage(<SettingsPage />) },
           { path: '*', element: lazyPage(<NotFoundPage />) },
         ],
