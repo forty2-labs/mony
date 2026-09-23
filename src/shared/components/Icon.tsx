@@ -35,6 +35,7 @@ export type IconName =
   | 'chevron-down'
   | 'import'
   | 'file'
+  | 'download'
   | 'alert'
   | 'check'
   // Category glyphs (selectable in the category form) — kept alphabetical
@@ -278,6 +279,13 @@ const paths: Record<IconName, JSX.Element> = {
     <>
       <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" />
       <path d="M14 3v5h5" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 3v12" />
+      <path d="M8 11l4 4 4-4" />
+      <path d="M5 20h14" />
     </>
   ),
   alert: (

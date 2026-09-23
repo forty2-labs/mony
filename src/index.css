@@ -125,3 +125,26 @@
     background-image: linear-gradient(135deg, rgb(var(--brand)), rgb(var(--brand-2)));
   }
 }
+
+/* Print / "Save as PDF": drop the app shell and let the page flow onto paper.
+   Used by the Reports page's Print action, but safe app-wide. */
+@media print {
+  aside,
+  header,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  html,
+  body,
+  #root,
+  main {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .card {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}
