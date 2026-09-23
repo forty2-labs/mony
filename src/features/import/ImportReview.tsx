@@ -12,6 +12,7 @@ import { BASE_CURRENCY } from '@/shared/lib/env';
 import { formatMoney } from '@/shared/lib/format';
 
 import type { BulkImportPayload } from './api';
+import { applyCategoryRules } from './categoryRules';
 import {
   draftBaseAmount,
   type DraftTransaction,
@@ -56,21 +57,24 @@ export function ImportReview({
   const patch = (rowId: string, next: Partial<DraftTransaction>) =>
     setRows((prev) => prev.map((r) => (r.rowId === rowId ? { ...r, ...next } : r)));
 
-  // Auto-map the statement's own category text to an existing category (once
-  // categories have loaded), matching on kind + name, case-insensitive.
+  // Auto-categorise once categories have loaded, in two passes: the bank's own
+  // category text is the strongest signal, so it wins; keyword rules over the
+  // description/counterparty then fill in whatever is still uncategorised
+  // (Wise and Revolut have no category column at all).
   const mappedRef = useRef(false);
   useEffect(() => {
     if (mappedRef.current || !categories?.length) return;
     mappedRef.current = true;
-    setRows((prev) =>
-      prev.map((r) => {
+    setRows((prev) => {
+      const exact = prev.map((r) => {
         if (r.categoryId || !r.suggestedCategory) return r;
         const match = categories.find(
           (c) => c.kind === r.type && c.name.toLowerCase() === r.suggestedCategory!.toLowerCase(),
         );
         return match ? { ...r, categoryId: match.id } : r;
-      }),
-    );
+      });
+      return applyCategoryRules(exact, categories);
+    });
   }, [categories]);
 
   // Best-effort FX: fetch the as-of rate for each distinct foreign
