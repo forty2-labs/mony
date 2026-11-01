@@ -52,6 +52,28 @@ function TooltipBox({ rows }: { rows: { label: string; value: number; color: str
   );
 }
 
+interface PlottedPoint extends ReportTrendPoint {
+  incomeLine: number;
+  expensesLine: number;
+  netLine: number;
+}
+
+/**
+ * Hold each series at its last recorded level through months with no entries,
+ * rather than letting the line dive to 0 (e.g. the current, not-yet-logged
+ * month). Months before a series' first entry stay at 0. The real monthly
+ * figures are kept alongside for the tooltip.
+ */
+function carryForward(data: ReportTrendPoint[]): PlottedPoint[] {
+  let income = 0;
+  let expenses = 0;
+  return data.map((d) => {
+    if (d.income > 0) income = d.income;
+    if (d.expenses > 0) expenses = d.expenses;
+    return { ...d, incomeLine: income, expensesLine: expenses, netLine: income - expenses };
+  });
+}
+
 /**
  * Monthly cash-flow: income and expenses as filled areas, with the resulting
  * net savings drawn as a line on the same axis so you can read the gap and the
@@ -61,7 +83,8 @@ export function TrendAreaChart({ data }: { data: ReportTrendPoint[] }) {
   const hasData = data.some((d) => d.income > 0 || d.expenses > 0);
   if (!hasData) return <EmptyState icon="reports" title="No activity in this range yet" />;
 
-  const hasNegativeNet = data.some((d) => d.net < 0);
+  const plotted = carryForward(data);
+  const hasNegativeNet = plotted.some((d) => d.netLine < 0);
 
   return (
     <div className="flex w-full flex-col text-content-muted">
@@ -70,9 +93,9 @@ export function TrendAreaChart({ data }: { data: ReportTrendPoint[] }) {
         <LegendChip color={EXPENSE_COLOR} label="Expenses" />
         <LegendChip color={NET_COLOR} label="Net saved" dashed />
       </div>
-      <div className="h-64 w-full">
+      <div className="h-80 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
+          <ComposedChart data={plotted} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
             <defs>
               <linearGradient id="rpt-income" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={INCOME_COLOR} stopOpacity={0.32} />
@@ -103,42 +126,46 @@ export function TrendAreaChart({ data }: { data: ReportTrendPoint[] }) {
             ) : null}
             <Tooltip
               cursor={{ stroke: 'rgb(128 128 128 / 0.3)' }}
-              content={({ active, payload, label }) =>
-                active && payload && payload.length ? (
+              content={({ active, payload, label }) => {
+                const point = payload?.[0]?.payload as PlottedPoint | undefined;
+                if (!active || !point) return null;
+                const empty = point.income === 0 && point.expenses === 0;
+                return (
                   <div>
                     <p className="mb-1 px-1 text-xs font-medium text-content">{label}</p>
                     <TooltipBox
                       rows={[
-                        { label: 'Income', value: pick(payload, 'income'), color: INCOME_COLOR },
-                        {
-                          label: 'Expenses',
-                          value: pick(payload, 'expenses'),
-                          color: EXPENSE_COLOR,
-                        },
-                        { label: 'Net saved', value: pick(payload, 'net'), color: NET_COLOR },
+                        { label: 'Income', value: point.income, color: INCOME_COLOR },
+                        { label: 'Expenses', value: point.expenses, color: EXPENSE_COLOR },
+                        { label: 'Net saved', value: point.net, color: NET_COLOR },
                       ]}
                     />
+                    {empty ? (
+                      <p className="mt-1 px-1 text-[11px] text-content-muted">
+                        No entries — line held at last level
+                      </p>
+                    ) : null}
                   </div>
-                ) : null
-              }
+                );
+              }}
             />
             <Area
               type="monotone"
-              dataKey="income"
+              dataKey="incomeLine"
               stroke={INCOME_COLOR}
               strokeWidth={2}
               fill="url(#rpt-income)"
             />
             <Area
               type="monotone"
-              dataKey="expenses"
+              dataKey="expensesLine"
               stroke={EXPENSE_COLOR}
               strokeWidth={2}
               fill="url(#rpt-expense)"
             />
             <Line
               type="monotone"
-              dataKey="net"
+              dataKey="netLine"
               stroke={NET_COLOR}
               strokeWidth={2}
               strokeDasharray="5 4"
@@ -150,12 +177,6 @@ export function TrendAreaChart({ data }: { data: ReportTrendPoint[] }) {
       </div>
     </div>
   );
-}
-
-/** Read a series value out of a Recharts tooltip payload by its dataKey. */
-function pick(payload: readonly { dataKey?: string | number; value?: unknown }[], key: string) {
-  const entry = payload.find((p) => p.dataKey === key);
-  return Number(entry?.value ?? 0);
 }
 
 /** Donut of category shares. Renders the top slices; a caller-supplied list is
