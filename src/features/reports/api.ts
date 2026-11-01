@@ -50,6 +50,8 @@ export interface ReportTx {
   kind: 'expense' | 'income';
   date: string;
   category: string;
+  categoryColor: string;
+  categoryIcon: string | null;
   notes: string | null;
   amountOriginal: number;
   currency: string;
@@ -211,6 +213,45 @@ function categoryBreakdown(
   return list;
 }
 
+/** First month the trend should cover: the range start, or for all-time the
+ *  month of the earliest transaction. */
+function trendNaturalStart(transactions: ReportTx[], range: ResolvedRange): string {
+  if (range.key !== 'all_time') return range.from.slice(0, 7);
+  const earliest = transactions.reduce((min, t) => (t.date < min ? t.date : min), range.to);
+  return earliest.slice(0, 7);
+}
+
+/**
+ * Monthly income/expense/net buckets for a set of transactions. For open-ended
+ * ranges (all-time / long windows) the buckets are capped to the trailing 24
+ * months so the chart stays legible; headline totals still cover the full range.
+ */
+function buildTrend(transactions: ReportTx[], range: ResolvedRange): ReportTrendPoint[] {
+  const toMonth = range.to.slice(0, 7);
+  const naturalStart = trendNaturalStart(transactions, range);
+  const [ty, tm] = toMonth.split('-').map(Number);
+  const cap = new Date(ty, tm - 1 - 23, 1);
+  const capStart = `${cap.getFullYear()}-${pad(cap.getMonth() + 1)}`;
+  const trendStart = naturalStart < capStart ? capStart : naturalStart;
+
+  const trend: ReportTrendPoint[] = monthsSpan(trendStart, toMonth).map((month) => ({
+    month,
+    label: monthLabel(month),
+    income: 0,
+    expenses: 0,
+    net: 0,
+  }));
+  const idx = new Map(trend.map((t) => [t.month, t]));
+  for (const tx of transactions) {
+    const t = idx.get(tx.date.slice(0, 7));
+    if (!t) continue;
+    if (tx.kind === 'income') t.income += tx.amountBase;
+    else t.expenses += tx.amountBase;
+  }
+  for (const t of trend) t.net = t.income - t.expenses;
+  return trend;
+}
+
 export async function fetchReport(key: RangeKey): Promise<ReportData> {
   const range = resolveRange(key);
 
@@ -266,49 +307,13 @@ export async function fetchReport(key: RangeKey): Promise<ReportData> {
   const totalIncome = income.reduce((a, i) => a + Number(i.amount_base), 0);
   const net = totalIncome - totalExpenses;
 
-  // Monthly trend. For open-ended ranges (all-time / long windows) cap the
-  // buckets to the trailing 24 months so the chart stays legible; the headline
-  // totals above still cover the full range.
-  const toMonth = range.to.slice(0, 7);
-  const earliest =
-    expenses.length || income.length
-      ? [...expenses, ...income].reduce(
-          (min, r) => (r.occurred_on < min ? r.occurred_on : min),
-          range.to,
-        )
-      : range.to;
-  const naturalStart = range.key === 'all_time' ? earliest.slice(0, 7) : range.from.slice(0, 7);
-  const [ty, tm] = toMonth.split('-').map(Number);
-  const capStart = `${new Date(ty, tm - 1 - 23, 1).getFullYear()}-${pad(
-    new Date(ty, tm - 1 - 23, 1).getMonth() + 1,
-  )}`;
-  const trendStart = naturalStart < capStart ? capStart : naturalStart;
-
-  const trend: ReportTrendPoint[] = monthsSpan(trendStart, toMonth).map((month) => ({
-    month,
-    label: monthLabel(month),
-    income: 0,
-    expenses: 0,
-    net: 0,
-  }));
-  const idx = new Map(trend.map((t) => [t.month, t]));
-  for (const e of expenses) {
-    const t = idx.get(e.occurred_on.slice(0, 7));
-    if (t) t.expenses += Number(e.amount_base);
-  }
-  for (const i of income) {
-    const t = idx.get(i.occurred_on.slice(0, 7));
-    if (t) t.income += Number(i.amount_base);
-  }
-  for (const t of trend) t.net = t.income - t.expenses;
-
-  const monthsInRange = monthsSpan(naturalStart, toMonth).length;
-
   const mapTx = (r: ExpenseRow | IncomeRow, kind: 'expense' | 'income'): ReportTx => ({
     id: r.id,
     kind,
     date: r.occurred_on,
     category: r.category?.name ?? 'Uncategorised',
+    categoryColor: r.category?.color ?? '#98989D',
+    categoryIcon: r.category?.icon ?? null,
     notes: r.notes,
     amountOriginal: Number(r.amount_original),
     currency: r.currency_original,
@@ -320,6 +325,9 @@ export async function fetchReport(key: RangeKey): Promise<ReportData> {
     ...expenses.map((e) => mapTx(e, 'expense')),
     ...income.map((i) => mapTx(i, 'income')),
   ].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+
+  const trend = buildTrend(allTx, range);
+  const monthsInRange = monthsSpan(trendNaturalStart(allTx, range), range.to.slice(0, 7)).length;
 
   const prev =
     prevExpRes && prevIncRes
