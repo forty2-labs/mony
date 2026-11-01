@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import { useInactivityLogout } from '@/features/auth/useInactivityLogout';
 
+import { cn } from '../lib/cn';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 
@@ -25,7 +26,11 @@ export function AppLayout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              className="mx-auto max-w-6xl px-6 py-8"
+              // The dashboard uses the full width; other pages stay a readable column.
+              className={cn(
+                'mx-auto px-6 py-8',
+                location.pathname === '/' ? 'max-w-none' : 'max-w-6xl',
+              )}
             >
               <Outlet />
             </motion.div>

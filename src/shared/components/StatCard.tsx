@@ -33,6 +33,7 @@ export function StatCard({
   label,
   value,
   hint,
+  tag,
   accent = 'neutral',
   icon,
   children,
@@ -40,13 +41,15 @@ export function StatCard({
   label: string;
   value: ReactNode;
   hint?: string;
+  /** Short qualifier shown beside the label, e.g. a rate behind the figure. */
+  tag?: string;
   accent?: Accent;
   icon?: IconName;
   children?: ReactNode;
 }) {
   const a = ACCENT[accent];
   return (
-    <div className="card relative overflow-hidden p-5">
+    <div className="card relative h-full overflow-hidden p-5">
       {/* soft corner glow tinted by accent */}
       <div
         aria-hidden
@@ -54,7 +57,10 @@ export function StatCard({
         style={{ background: a.glow }}
       />
       <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-content-muted">{label}</p>
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wide text-content-muted">{label}</p>
+          {tag ? <p className="mt-0.5 text-xs text-content-muted">{tag}</p> : null}
+        </div>
         {icon ? (
           <span className={cn('grid h-8 w-8 place-items-center rounded-xl', a.chip)}>
             <Icon name={icon} size={16} />
