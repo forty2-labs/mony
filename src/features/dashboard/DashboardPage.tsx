@@ -6,12 +6,10 @@ import type { ExpenseInput } from '@/features/expenses/api';
 import { ExpenseFormModal } from '@/features/expenses/ExpenseFormModal';
 import { useExpenseMutations } from '@/features/expenses/hooks';
 import { useLoans } from '@/features/loans/hooks';
-import { RANGE_OPTIONS, type RangeKey } from '@/features/reports/api';
 import { useReport } from '@/features/reports/hooks';
 import { Delta, ExportMenu } from '@/features/reports/ReportSections';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
-import { Select } from '@/shared/components/Select';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { StatCard } from '@/shared/components/StatCard';
 import { useToast } from '@/shared/components/Toast';
@@ -19,6 +17,8 @@ import { formatMoney, todayISO } from '@/shared/lib/format';
 
 import { CategoryMonthTable } from './CategoryMonthTable';
 import { useOverview } from './hooks';
+import { RangePicker } from './RangePicker';
+import { usePersistedRange } from './usePersistedRange';
 
 // Recharts is heavy — split it into its own chunk loaded on demand.
 const TrendAreaChart = lazy(() =>
@@ -54,7 +54,7 @@ export function DashboardPage() {
   const { user } = useAuth();
   const name = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'there';
 
-  const [range, setRange] = useState<RangeKey>('last_12_months');
+  const [range, setRange] = usePersistedRange();
   const { data: report, isLoading } = useReport(range);
   const { data: overview } = useOverview();
   const { data: openLoans } = useLoans('open');
@@ -97,20 +97,7 @@ export function DashboardPage() {
         subtitle="Your financial overview at a glance."
         actions={
           <div data-print-hide className="flex items-center gap-2">
-            <Select
-              value={range}
-              onChange={(e) => setRange(e.target.value as RangeKey)}
-              wrapperClassName="w-44"
-              className="h-9 py-0 text-sm"
-              aria-label="Date range"
-              title={report ? `${report.range.from} → ${report.range.to}` : undefined}
-            >
-              {RANGE_OPTIONS.map((o) => (
-                <option key={o.key} value={o.key}>
-                  {o.label}
-                </option>
-              ))}
-            </Select>
+            <RangePicker value={range} onChange={setRange} />
             <ExportMenu data={report} />
             <button className="btn-ghost h-9 text-sm" onClick={() => window.print()}>
               <Icon name="file" size={16} />

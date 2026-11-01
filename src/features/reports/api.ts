@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format';
 import { supabase } from '@/shared/lib/supabase';
 
 /** Selectable reporting windows. Order here drives the range picker. */
@@ -20,8 +21,11 @@ export const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
   { key: 'all_time', label: 'All time' },
 ];
 
+/** What the user picked: a preset window, or explicit inclusive dates. */
+export type RangeSelection = { key: RangeKey } | { key: 'custom'; from: string; to: string };
+
 export interface ResolvedRange {
-  key: RangeKey;
+  key: RangeKey | 'custom';
   label: string;
   from: string; // inclusive YYYY-MM-DD
   to: string; // inclusive YYYY-MM-DD
@@ -94,8 +98,21 @@ function daysBetween(from: string, to: string): number {
   return Math.round((parse(to).getTime() - parse(from).getTime()) / 86_400_000);
 }
 
-/** Resolve a preset key into concrete date bounds (+ a comparison window). */
-export function resolveRange(key: RangeKey): ResolvedRange {
+/** Resolve a selection into concrete date bounds (+ a comparison window). */
+export function resolveRange(selection: RangeSelection): ResolvedRange {
+  if (selection.key === 'custom') {
+    const { from, to } = selection;
+    const prevTo = addDays(from, -1);
+    return {
+      key: 'custom',
+      label: `${formatDate(from)} – ${formatDate(to)}`,
+      from,
+      to,
+      prev: { from: addDays(prevTo, -daysBetween(from, to)), to: prevTo },
+    };
+  }
+
+  const { key } = selection;
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
@@ -252,8 +269,8 @@ function buildTrend(transactions: ReportTx[], range: ResolvedRange): ReportTrend
   return trend;
 }
 
-export async function fetchReport(key: RangeKey): Promise<ReportData> {
-  const range = resolveRange(key);
+export async function fetchReport(selection: RangeSelection): Promise<ReportData> {
+  const range = resolveRange(selection);
 
   const requests = [
     supabase
