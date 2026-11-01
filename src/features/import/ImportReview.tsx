@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useCategories } from '@/features/categories/hooks';
 import { fetchRateToBase } from '@/features/fx/fxService';
@@ -29,6 +29,31 @@ const cellClass =
 
 const HEAD_CELL = 'px-3 py-3 font-semibold';
 const BODY_CELL = 'px-3 py-3';
+
+/** Day heading for a date group, e.g. "Tue, 14 Oct 2026". */
+function dayLabel(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return 'No date';
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(y, m - 1, d));
+}
+
+/**
+ * Background tint + left accent strip per row state, so income, expenses and
+ * rows needing attention read apart at a glance. Attention wins over type.
+ */
+function rowTone(row: DraftTransaction, attention: boolean): string {
+  if (attention)
+    return 'bg-warning/10 [&>td:first-child]:shadow-[inset_3px_0_0_rgb(var(--warning))]';
+  if (row.internalTransfer) return 'bg-surface-2/50';
+  return row.type === 'income'
+    ? 'bg-success/[0.07] [&>td:first-child]:shadow-[inset_3px_0_0_rgb(var(--success))]'
+    : 'bg-danger/[0.04] [&>td:first-child]:shadow-[inset_3px_0_0_rgb(var(--danger)/0.6)]';
+}
 
 /**
  * Inline review step for a parsed statement. Rendered directly on the import
@@ -139,6 +164,19 @@ export function ImportReview({
     });
   }, [rows, query, typeFilter, attentionOnly, sortKey, sortAsc, validations, categories]);
 
+  // When sorted by date, bucket consecutive same-day rows under a day heading.
+  // Sorting by amount shows a flat list, since days would be interleaved.
+  const dateGroups = useMemo(() => {
+    if (sortKey !== 'date') return null;
+    const groups: { date: string; rows: DraftTransaction[] }[] = [];
+    for (const r of displayed) {
+      const last = groups[groups.length - 1];
+      if (last && last.date === r.occurredOn) last.rows.push(r);
+      else groups.push({ date: r.occurredOn, rows: [r] });
+    }
+    return groups;
+  }, [displayed, sortKey]);
+
   const summary = useMemo(() => {
     const selectedValid = rows.filter((r) => r.selected && validations.get(r.rowId)?.valid);
     const expenses = selectedValid.filter((r) => r.type === 'expense');
@@ -190,6 +228,159 @@ export function ImportReview({
       currencyOriginal: currency,
       exchangeRate: currency === BASE_CURRENCY ? 1 : row.exchangeRate,
     });
+  };
+
+  const renderRow = (row: DraftTransaction) => {
+    const v = validations.get(row.rowId)!;
+    const base = draftBaseAmount(row);
+    const cats = (categories ?? []).filter((c) => c.kind === row.type);
+    const foreign = row.currencyOriginal !== BASE_CURRENCY;
+    const attention = !v.valid || row.notes.length > 0;
+    return (
+      <tr
+        key={row.rowId}
+        className={cn(
+          'align-top transition-colors',
+          rowTone(row, attention),
+          'hover:bg-surface-2/40',
+        )}
+      >
+        <td className={BODY_CELL}>
+          <input
+            type="checkbox"
+            checked={row.selected}
+            onChange={(e) => patch(row.rowId, { selected: e.target.checked })}
+            aria-label="Select row"
+          />
+        </td>
+        <td className={BODY_CELL}>
+          <Select
+            bare
+            className={cn(
+              cellClass,
+              'font-medium',
+              row.type === 'expense' ? 'text-danger' : 'text-success',
+            )}
+            wrapperClassName="w-24"
+            value={row.type}
+            onChange={(e) => changeType(row, e.target.value as TxnType)}
+          >
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+          </Select>
+        </td>
+        <td className={BODY_CELL}>
+          <input
+            type="date"
+            className={cn(cellClass, 'w-36')}
+            value={row.occurredOn}
+            onChange={(e) => patch(row.rowId, { occurredOn: e.target.value })}
+          />
+        </td>
+        <td className={BODY_CELL}>
+          <input
+            className={cellClass}
+            value={row.description}
+            onChange={(e) => patch(row.rowId, { description: e.target.value })}
+            placeholder="Description"
+          />
+          {row.internalTransfer && (
+            <span
+              className="mt-1 inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-content-muted"
+              title="Matches a configured own-account name — pre-deselected. Tick the box to include it."
+            >
+              <Icon name="import" size={11} />
+              Between your accounts
+            </span>
+          )}
+        </td>
+        <td className={BODY_CELL}>
+          <Select
+            bare
+            className={cellClass}
+            value={row.categoryId ?? ''}
+            onChange={(e) => patch(row.rowId, { categoryId: e.target.value || null })}
+          >
+            <option value="">Uncategorised</option>
+            {cats.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        </td>
+        <td className={BODY_CELL}>
+          <div className="flex items-center justify-end gap-1">
+            <input
+              type="number"
+              step="0.01"
+              className={cn(cellClass, 'w-20 text-right tabular-nums')}
+              value={Number.isNaN(row.amountOriginal) ? '' : row.amountOriginal}
+              onChange={(e) =>
+                patch(row.rowId, {
+                  amountOriginal: e.target.value === '' ? NaN : Number.parseFloat(e.target.value),
+                })
+              }
+            />
+            <Select
+              bare
+              className={cellClass}
+              wrapperClassName="w-20 shrink-0"
+              value={row.currencyOriginal}
+              onChange={(e) => changeCurrency(row, e.target.value)}
+              aria-label="Currency"
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code}
+                </option>
+              ))}
+            </Select>
+          </div>
+          {foreign && (
+            <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-content-muted">
+              <span>rate</span>
+              <input
+                type="number"
+                step="0.00000001"
+                className={cn(cellClass, 'w-24 text-right tabular-nums')}
+                value={Number.isNaN(row.exchangeRate) ? '' : row.exchangeRate}
+                onChange={(e) =>
+                  patch(row.rowId, {
+                    exchangeRate: e.target.value === '' ? NaN : Number.parseFloat(e.target.value),
+                  })
+                }
+              />
+            </div>
+          )}
+        </td>
+        <td className={cn(BODY_CELL, 'text-right')}>
+          <div className="flex items-center justify-end gap-1.5">
+            {attention && (
+              <span
+                className={cn(!v.valid ? 'text-danger' : 'text-warning')}
+                title={[...v.errors, ...row.notes].join(' · ')}
+              >
+                <Icon name="alert" size={14} />
+              </span>
+            )}
+            <span className="font-semibold tabular-nums">
+              {Number.isNaN(base) ? '—' : formatMoney(base)}
+            </span>
+          </div>
+        </td>
+        <td className={BODY_CELL}>
+          <button
+            type="button"
+            onClick={() => setRows((prev) => prev.filter((r) => r.rowId !== row.rowId))}
+            title="Remove row"
+            className="rounded-lg p-1.5 text-content-muted transition hover:bg-surface-2 hover:text-danger"
+          >
+            <Icon name="trash" size={14} />
+          </button>
+        </td>
+      </tr>
+    );
   };
 
   const confirm = () => {
@@ -366,165 +557,40 @@ export function ImportReview({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {displayed.map((row) => {
-                const v = validations.get(row.rowId)!;
-                const base = draftBaseAmount(row);
-                const cats = (categories ?? []).filter((c) => c.kind === row.type);
-                const foreign = row.currencyOriginal !== BASE_CURRENCY;
-                const attention = !v.valid || row.notes.length > 0;
-                return (
-                  <tr
-                    key={row.rowId}
-                    className={cn(
-                      'align-top transition-colors',
-                      !v.valid && 'bg-danger/5',
-                      v.valid && row.notes.length > 0 && 'bg-warning/5',
-                      v.valid &&
-                        row.notes.length === 0 &&
-                        row.internalTransfer &&
-                        'bg-surface-2/50',
-                      'hover:bg-surface-2/40',
-                    )}
-                  >
-                    <td className={BODY_CELL}>
-                      <input
-                        type="checkbox"
-                        checked={row.selected}
-                        onChange={(e) => patch(row.rowId, { selected: e.target.checked })}
-                        aria-label="Select row"
-                      />
-                    </td>
-                    <td className={BODY_CELL}>
-                      <Select
-                        bare
-                        className={cn(
-                          cellClass,
-                          'font-medium',
-                          row.type === 'expense' ? 'text-danger' : 'text-success',
-                        )}
-                        wrapperClassName="w-24"
-                        value={row.type}
-                        onChange={(e) => changeType(row, e.target.value as TxnType)}
-                      >
-                        <option value="expense">Expense</option>
-                        <option value="income">Income</option>
-                      </Select>
-                    </td>
-                    <td className={BODY_CELL}>
-                      <input
-                        type="date"
-                        className={cn(cellClass, 'w-36')}
-                        value={row.occurredOn}
-                        onChange={(e) => patch(row.rowId, { occurredOn: e.target.value })}
-                      />
-                    </td>
-                    <td className={BODY_CELL}>
-                      <input
-                        className={cellClass}
-                        value={row.description}
-                        onChange={(e) => patch(row.rowId, { description: e.target.value })}
-                        placeholder="Description"
-                      />
-                      {row.internalTransfer && (
-                        <span
-                          className="mt-1 inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-content-muted"
-                          title="Matches a configured own-account name — pre-deselected. Tick the box to include it."
-                        >
-                          <Icon name="import" size={11} />
-                          Between your accounts
-                        </span>
-                      )}
-                    </td>
-                    <td className={BODY_CELL}>
-                      <Select
-                        bare
-                        className={cellClass}
-                        value={row.categoryId ?? ''}
-                        onChange={(e) => patch(row.rowId, { categoryId: e.target.value || null })}
-                      >
-                        <option value="">Uncategorised</option>
-                        {cats.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </td>
-                    <td className={BODY_CELL}>
-                      <div className="flex items-center justify-end gap-1">
-                        <input
-                          type="number"
-                          step="0.01"
-                          className={cn(cellClass, 'w-20 text-right tabular-nums')}
-                          value={Number.isNaN(row.amountOriginal) ? '' : row.amountOriginal}
-                          onChange={(e) =>
-                            patch(row.rowId, {
-                              amountOriginal:
-                                e.target.value === '' ? NaN : Number.parseFloat(e.target.value),
-                            })
-                          }
-                        />
-                        <Select
-                          bare
-                          className={cellClass}
-                          wrapperClassName="w-20 shrink-0"
-                          value={row.currencyOriginal}
-                          onChange={(e) => changeCurrency(row, e.target.value)}
-                          aria-label="Currency"
-                        >
-                          {CURRENCIES.map((c) => (
-                            <option key={c.code} value={c.code}>
-                              {c.code}
-                            </option>
-                          ))}
-                        </Select>
-                      </div>
-                      {foreign && (
-                        <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-content-muted">
-                          <span>rate</span>
-                          <input
-                            type="number"
-                            step="0.00000001"
-                            className={cn(cellClass, 'w-24 text-right tabular-nums')}
-                            value={Number.isNaN(row.exchangeRate) ? '' : row.exchangeRate}
-                            onChange={(e) =>
-                              patch(row.rowId, {
-                                exchangeRate:
-                                  e.target.value === '' ? NaN : Number.parseFloat(e.target.value),
-                              })
-                            }
-                          />
-                        </div>
-                      )}
-                    </td>
-                    <td className={cn(BODY_CELL, 'text-right')}>
-                      <div className="flex items-center justify-end gap-1.5">
-                        {attention && (
-                          <span
-                            className={cn(!v.valid ? 'text-danger' : 'text-warning')}
-                            title={[...v.errors, ...row.notes].join(' · ')}
-                          >
-                            <Icon name="alert" size={14} />
-                          </span>
-                        )}
-                        <span className="font-semibold tabular-nums">
-                          {Number.isNaN(base) ? '—' : formatMoney(base)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className={BODY_CELL}>
-                      <button
-                        type="button"
-                        onClick={() => setRows((prev) => prev.filter((r) => r.rowId !== row.rowId))}
-                        title="Remove row"
-                        className="rounded-lg p-1.5 text-content-muted transition hover:bg-surface-2 hover:text-danger"
-                      >
-                        <Icon name="trash" size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {dateGroups
+                ? dateGroups.map((g) => {
+                    const sum = (type: TxnType) =>
+                      g.rows
+                        .filter((r) => r.type === type)
+                        .reduce((acc, r) => acc + (draftBaseAmount(r) || 0), 0);
+                    const out = sum('expense');
+                    const inc = sum('income');
+                    return (
+                      <Fragment key={g.date || 'no-date'}>
+                        <tr className="bg-surface-2">
+                          <td colSpan={8} className="px-3 py-2">
+                            <div className="flex items-center gap-3 text-[11px] font-semibold text-content">
+                              <Icon name="calendar" size={13} className="text-content-muted" />
+                              {dayLabel(g.date)}
+                              <span className="font-normal text-content-muted">
+                                {g.rows.length} row{g.rows.length === 1 ? '' : 's'}
+                              </span>
+                              <span className="ml-auto flex gap-3 tabular-nums">
+                                {inc > 0 && (
+                                  <span className="text-success">+{formatMoney(inc)}</span>
+                                )}
+                                {out > 0 && (
+                                  <span className="text-danger">−{formatMoney(out)}</span>
+                                )}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                        {g.rows.map(renderRow)}
+                      </Fragment>
+                    );
+                  })
+                : displayed.map(renderRow)}
             </tbody>
           </table>
         </div>
