@@ -87,7 +87,7 @@ export function ExpenseForm({
           <label className="mb-1.5 block text-sm font-medium" htmlFor="exp-cat">
             Category
           </label>
-          <Select id="exp-cat" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+          <Select id="exp-cat" value={categoryId} onChange={(v) => setCategoryId(v)}>
             <option value="">Uncategorised</option>
             {expenseCats.map((c) => (
               <option key={c.id} value={c.id}>

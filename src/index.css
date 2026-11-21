@@ -137,6 +137,12 @@
     @apply btn bg-transparent text-content hover:bg-surface-2;
   }
 
+  /* Destructive confirm. Text uses the page background so it reads on red in
+     both themes. */
+  .btn-danger {
+    @apply btn bg-danger text-bg hover:brightness-110;
+  }
+
   /* Round icon badge: dark green disc with a lime glyph. */
   .icon-badge {
     @apply grid shrink-0 place-items-center rounded-full bg-badge text-badge-fg;

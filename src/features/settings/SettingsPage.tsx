@@ -108,11 +108,8 @@ export function SettingsPage() {
                 aria-label="Auto-logout"
                 value={profile.data?.inactivity_timeout_minutes ?? ''}
                 disabled={!profile.data || updateProfile.isPending}
-                onChange={(e) =>
-                  save(
-                    { inactivity_timeout_minutes: Number(e.target.value) },
-                    'Auto-logout updated.',
-                  )
+                onChange={(v) =>
+                  save({ inactivity_timeout_minutes: Number(v) }, 'Auto-logout updated.')
                 }
                 wrapperClassName="w-40"
               >

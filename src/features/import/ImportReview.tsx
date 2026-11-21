@@ -263,7 +263,7 @@ export function ImportReview({
             )}
             wrapperClassName="w-24"
             value={row.type}
-            onChange={(e) => changeType(row, e.target.value as TxnType)}
+            onChange={(v) => changeType(row, v as TxnType)}
           >
             <option value="expense">Expense</option>
             <option value="income">Income</option>
@@ -299,7 +299,7 @@ export function ImportReview({
             bare
             className={cellClass}
             value={row.categoryId ?? ''}
-            onChange={(e) => patch(row.rowId, { categoryId: e.target.value || null })}
+            onChange={(v) => patch(row.rowId, { categoryId: v || null })}
           >
             <option value="">Uncategorised</option>
             {cats.map((c) => (
@@ -327,7 +327,7 @@ export function ImportReview({
               className={cellClass}
               wrapperClassName="w-20 shrink-0"
               value={row.currencyOriginal}
-              onChange={(e) => changeCurrency(row, e.target.value)}
+              onChange={(v) => changeCurrency(row, v)}
               aria-label="Currency"
             >
               {CURRENCIES.map((c) => (
@@ -473,7 +473,7 @@ export function ImportReview({
           className="w-auto"
           wrapperClassName="w-auto"
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
+          onChange={(v) => setTypeFilter(v as TypeFilter)}
           aria-label="Filter by type"
         >
           <option value="all">All types</option>

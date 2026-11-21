@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 
+import { useConfirm } from '@/shared/components/ConfirmDialog';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -36,6 +37,7 @@ export function LoansPage() {
   const { data: loans, isLoading } = useLoans(filter);
   const { create, update, repay, remove } = useLoanMutations();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<LoanRow | null>(null);
@@ -86,8 +88,12 @@ export function LoansPage() {
     );
   };
 
-  const handleDelete = (l: LoanRow) => {
-    if (!confirm(`Delete the loan to ${l.person_name}? This cannot be undone.`)) return;
+  const handleDelete = async (l: LoanRow) => {
+    const ok = await confirm({
+      title: `Delete the loan to ${l.person_name}?`,
+      message: 'This can’t be undone.',
+    });
+    if (!ok) return;
     remove.mutate(l.id, {
       onSuccess: () => toast.success('Loan deleted'),
       onError: (e) => toast.error(e instanceof Error ? e.message : 'Delete failed'),

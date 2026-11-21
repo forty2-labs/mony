@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { useCategories } from '@/features/categories/hooks';
 import { CategoryBadge } from '@/shared/components/CategoryBadge';
+import { useConfirm } from '@/shared/components/ConfirmDialog';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { type CommonFilters, EMPTY_FILTERS, FilterBar } from '@/shared/components/FilterBar';
 import { Icon } from '@/shared/components/Icon';
@@ -79,6 +80,7 @@ export function ExpensesPage() {
   const { data: categories } = useCategories();
   const { create, update, remove } = useExpenseMutations();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ExpenseWithCategory | null>(null);
@@ -138,9 +140,12 @@ export function ExpensesPage() {
     );
   };
 
-  const handleDelete = (e: ExpenseWithCategory) => {
-    if (!confirm('Delete this expense? It can be recovered from the database (soft delete).'))
-      return;
+  const handleDelete = async (e: ExpenseWithCategory) => {
+    const ok = await confirm({
+      title: 'Delete this expense?',
+      message: 'It will be removed from your lists and totals.',
+    });
+    if (!ok) return;
     remove.mutate(e.id, {
       onSuccess: () => toast.success('Expense deleted'),
       onError: (err) => toast.error(err instanceof Error ? err.message : 'Delete failed'),
@@ -174,7 +179,7 @@ export function ExpensesPage() {
                 className="w-auto"
                 wrapperClassName="w-auto"
                 value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
+                onChange={(v) => setCategoryId(v)}
                 aria-label="Category"
               >
                 <option value="">All categories</option>

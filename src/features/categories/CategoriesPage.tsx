@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { CategoryBadge } from '@/shared/components/CategoryBadge';
+import { useConfirm } from '@/shared/components/ConfirmDialog';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -16,6 +17,7 @@ export function CategoriesPage() {
   const { data: categories, isLoading } = useCategories();
   const { create, update, remove } = useCategoryMutations();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CategoryRow | null>(null);
@@ -58,9 +60,12 @@ export function CategoriesPage() {
     }
   };
 
-  const handleDelete = (cat: CategoryRow) => {
-    if (!confirm(`Delete "${cat.name}"? Transactions keep their record but lose this label.`))
-      return;
+  const handleDelete = async (cat: CategoryRow) => {
+    const ok = await confirm({
+      title: `Delete “${cat.name}”?`,
+      message: 'Transactions keep their record but lose this label.',
+    });
+    if (!ok) return;
     remove.mutate(cat.id, {
       onSuccess: () => toast.success('Category deleted'),
       onError: (e) => toast.error(e instanceof Error ? e.message : 'Delete failed'),

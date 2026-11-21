@@ -155,7 +155,7 @@ export function FilterBar({
           className="w-auto"
           wrapperClassName="w-auto"
           value={filters.sort}
-          onChange={(e) => set('sort', e.target.value as CommonFilters['sort'])}
+          onChange={(v) => set('sort', v as CommonFilters['sort'])}
           aria-label="Sort"
         >
           <option value="date_desc">Newest first</option>
@@ -280,7 +280,7 @@ export function FilterBar({
                   <Select
                     wrapperClassName="mt-1"
                     value={filters.currency}
-                    onChange={(e) => set('currency', e.target.value)}
+                    onChange={(v) => set('currency', v)}
                   >
                     <option value="">Any</option>
                     {CURRENCIES.map((c) => (

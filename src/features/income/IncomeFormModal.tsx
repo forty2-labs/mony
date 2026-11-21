@@ -102,11 +102,7 @@ function IncomeForm({
           <label className="mb-1.5 block text-sm font-medium" htmlFor="inc-source">
             Category
           </label>
-          <Select
-            id="inc-source"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
+          <Select id="inc-source" value={categoryId} onChange={(v) => setCategoryId(v)}>
             <option value="">Uncategorised</option>
             {incomeCats.map((c) => (
               <option key={c.id} value={c.id}>
