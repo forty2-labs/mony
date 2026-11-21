@@ -22,6 +22,11 @@ Auth emails go to Mailpit at <http://127.0.0.1:54324>; nothing is really sent.
 Studio is at <http://127.0.0.1:54323>. Stop with `npm run db:stop` (local data
 is kept).
 
+A fresh database is seeded (`supabase/seed.sql`) with a demo account holding a
+year of fictional data: `demo@example.com` / `MonyDemo2026`. In dev builds the
+sign-in page has a **Demo account** button and a link to Mailpit. Seeds never
+reach a hosted project; `db push` only applies migrations.
+
 | Command            | What it does                                     |
 | ------------------ | ------------------------------------------------ |
 | `npm run build`    | type-check + production build                    |

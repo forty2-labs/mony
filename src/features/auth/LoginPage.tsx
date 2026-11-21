@@ -7,6 +7,7 @@ import { LogoMark } from '@/shared/components/Logo';
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
 import { useAuth } from './AuthProvider';
+import { DevLoginTools } from './DevLoginTools';
 import { friendlyAuthError, PASSWORD_HINT, passwordProblem } from './password';
 
 type Mode = 'signin' | 'signup' | 'otp' | 'forgot';
@@ -211,6 +212,8 @@ export function LoginPage() {
             </button>
           )}
         </div>
+
+        {import.meta.env.DEV && <DevLoginTools signIn={signInWithPassword} />}
       </motion.div>
     </div>
   );
