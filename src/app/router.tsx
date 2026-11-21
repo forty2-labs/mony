@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { LoginPage } from '@/features/auth/LoginPage';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
+import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage';
 /**
  * Routes are lazy-loaded so each feature ships as its own chunk (code splitting).
  * The dashboard is eager since it's the default landing view.
@@ -50,6 +51,7 @@ function lazyPage(node: React.ReactNode) {
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   {
     element: <ProtectedRoute />,
     children: [

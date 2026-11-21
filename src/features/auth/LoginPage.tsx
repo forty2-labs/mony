@@ -3,12 +3,13 @@ import { useForm } from 'react-hook-form';
 import { Navigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-import { Icon } from '@/shared/components/Icon';
+import { LogoMark } from '@/shared/components/Logo';
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
 import { useAuth } from './AuthProvider';
+import { friendlyAuthError, PASSWORD_HINT, passwordProblem } from './password';
 
-type Mode = 'signin' | 'signup' | 'otp';
+type Mode = 'signin' | 'signup' | 'otp' | 'forgot';
 
 interface FormValues {
   email: string;
@@ -17,13 +18,15 @@ interface FormValues {
 }
 
 const MODE_COPY: Record<Mode, { title: string; cta: string }> = {
-  signin: { title: 'Welcome back', cta: 'Unlock vault' },
-  signup: { title: 'Create your vault', cta: 'Create vault' },
+  signin: { title: 'Welcome back', cta: 'Sign in' },
+  signup: { title: 'Create your account', cta: 'Create account' },
   otp: { title: 'Sign in with a link', cta: 'Email me a link' },
+  forgot: { title: 'Reset your password', cta: 'Email me a reset link' },
 };
 
 export function LoginPage() {
-  const { session, signInWithPassword, signUpWithPassword, signInWithOtp } = useAuth();
+  const { session, signInWithPassword, signUpWithPassword, signInWithOtp, sendPasswordReset } =
+    useAuth();
   const location = useLocation();
   const [mode, setMode] = useState<Mode>('signin');
   const [banner, setBanner] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
@@ -38,6 +41,11 @@ export function LoginPage() {
     const from = (location.state as { from?: string } | null)?.from ?? '/';
     return <Navigate to={from} replace />;
   }
+
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setBanner(null);
+  };
 
   const onSubmit = handleSubmit(async (values) => {
     setBanner(null);
@@ -56,14 +64,29 @@ export function LoginPage() {
             text: 'Check your email to confirm your account, then sign in.',
           });
         }
+      } else if (mode === 'forgot') {
+        await sendPasswordReset(values.email);
+        // Same message whether or not the account exists (no account enumeration).
+        setBanner({
+          kind: 'success',
+          text: 'If an account exists for that email, a reset link is on its way.',
+        });
       } else {
-        await signInWithOtp(values.email);
-        setBanner({ kind: 'success', text: 'Magic link sent — check your inbox.' });
+        // Unknown emails are rejected (magic links never create accounts); treat
+        // that like success so the response doesn't reveal who has an account.
+        await signInWithOtp(values.email).catch((e: unknown) => {
+          const code = (e as { code?: string } | null)?.code;
+          if (code !== 'otp_disabled' && !/signups not allowed/i.test(String(e))) throw e;
+        });
+        setBanner({
+          kind: 'success',
+          text: 'If an account exists for that email, a sign-in link is on its way.',
+        });
       }
     } catch (err) {
       setBanner({
         kind: 'error',
-        text: err instanceof Error ? err.message : 'Something went wrong. Try again.',
+        text: friendlyAuthError(err),
       });
     }
   });
@@ -83,14 +106,12 @@ export function LoginPage() {
         className="w-full max-w-sm"
       >
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand/10 text-brand">
-            <Icon name="vault" size={30} />
-          </div>
-          <h1 className="text-xl font-semibold tracking-tight">{copy.title}</h1>
-          <p className="mt-1 text-sm text-content-muted">Your private financial vault.</p>
+          <LogoMark size={56} className="mb-4" />
+          <h1 className="text-2xl font-medium tracking-tight">{copy.title}</h1>
+          <p className="mt-1 text-sm text-content-muted">Your money. Your clarity.</p>
         </div>
 
-        <form onSubmit={onSubmit} className="card space-y-4 p-6">
+        <form onSubmit={onSubmit} className="card space-y-4 p-7">
           {banner && (
             <div
               className={
@@ -136,7 +157,7 @@ export function LoginPage() {
             {errors.email && <p className="mt-1 text-xs text-danger">{errors.email.message}</p>}
           </div>
 
-          {mode !== 'otp' && (
+          {(mode === 'signin' || mode === 'signup') && (
             <div>
               <label className="mb-1.5 block text-sm font-medium" htmlFor="password">
                 Password
@@ -149,12 +170,14 @@ export function LoginPage() {
                 placeholder="••••••••"
                 {...register('password', {
                   required: 'Password is required',
-                  minLength: { value: 8, message: 'At least 8 characters' },
+                  validate: mode === 'signup' ? passwordProblem : undefined,
                 })}
               />
-              {errors.password && (
+              {errors.password ? (
                 <p className="mt-1 text-xs text-danger">{errors.password.message}</p>
-              )}
+              ) : mode === 'signup' ? (
+                <p className="mt-1 text-xs text-content-muted">{PASSWORD_HINT}</p>
+              ) : null}
             </div>
           )}
 
@@ -166,22 +189,25 @@ export function LoginPage() {
         <div className="mt-4 flex flex-col items-center gap-2 text-sm text-content-muted">
           {mode === 'signin' && (
             <>
-              <button className="hover:text-content" onClick={() => setMode('otp')}>
+              <button className="hover:text-content" onClick={() => switchMode('forgot')}>
+                Forgot your password?
+              </button>
+              <button className="hover:text-content" onClick={() => switchMode('otp')}>
                 Sign in with a magic link instead
               </button>
-              <button className="hover:text-content" onClick={() => setMode('signup')}>
-                No vault yet? <span className="text-brand">Create one</span>
+              <button className="hover:text-content" onClick={() => switchMode('signup')}>
+                New to mony? <span className="text-brand">Create an account</span>
               </button>
             </>
           )}
           {mode === 'signup' && (
-            <button className="hover:text-content" onClick={() => setMode('signin')}>
-              Already have a vault? <span className="text-brand">Sign in</span>
+            <button className="hover:text-content" onClick={() => switchMode('signin')}>
+              Already have an account? <span className="text-brand">Sign in</span>
             </button>
           )}
-          {mode === 'otp' && (
-            <button className="hover:text-content" onClick={() => setMode('signin')}>
-              Use a password instead
+          {(mode === 'otp' || mode === 'forgot') && (
+            <button className="hover:text-content" onClick={() => switchMode('signin')}>
+              Back to sign in
             </button>
           )}
         </div>

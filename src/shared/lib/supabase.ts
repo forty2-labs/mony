@@ -18,6 +18,8 @@ export const supabase = createClient<Database>(env.VITE_SUPABASE_URL, env.VITE_S
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storageKey: 'vault.auth',
+    // PKCE keeps tokens out of the URL fragment on email-link redirects.
+    flowType: 'pkce',
+    storageKey: 'mony.auth',
   },
 });
