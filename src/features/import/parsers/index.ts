@@ -38,10 +38,15 @@ export function detectParser(headerKeys: string[]): StatementParser | null {
 
 /**
  * Parse raw statement text end to end. When `parserId` is omitted the format is
- * auto-detected from the header row. Throws with a friendly message when the
- * format can't be recognised.
+ * auto-detected from the header row. `transferNames` (from the user's profile)
+ * flag transfers between their own accounts. Throws with a friendly message
+ * when the format can't be recognised.
  */
-export function parseStatement(text: string, parserId?: string): ParseOutcome {
+export function parseStatement(
+  text: string,
+  parserId?: string,
+  transferNames: readonly string[] = [],
+): ParseOutcome {
   const table = parseDelimited(text);
   const keys = table.headers.map((h) => h.toLowerCase());
 
@@ -56,7 +61,7 @@ export function parseStatement(text: string, parserId?: string): ParseOutcome {
     parserId: parser.id,
     parserLabel: parser.label,
     // Flag between-your-accounts transfers once, regardless of which parser ran.
-    transactions: flagInternalTransfers(parser.parse(table.rows)),
+    transactions: flagInternalTransfers(parser.parse(table.rows), transferNames),
     skipped: table.skipped,
   };
 }

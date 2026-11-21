@@ -3,8 +3,6 @@
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
-  readonly VITE_BASE_CURRENCY: string;
-  readonly VITE_INACTIVITY_TIMEOUT_MINUTES: string;
 }
 
 interface ImportMeta {
