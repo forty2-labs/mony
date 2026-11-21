@@ -6,14 +6,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: [
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'SF Pro Text',
-          'Inter',
-          'system-ui',
-          'sans-serif',
-        ],
+        sans: ['Manrope', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       colors: {
         // Semantic tokens driven by CSS variables (see index.css)
@@ -29,23 +22,17 @@ export default {
         success: 'rgb(var(--success) / <alpha-value>)',
         danger: 'rgb(var(--danger) / <alpha-value>)',
         warning: 'rgb(var(--warning) / <alpha-value>)',
-      },
-      borderRadius: {
-        xl: '0.875rem',
-        '2xl': '1.25rem',
+        badge: 'rgb(var(--badge) / <alpha-value>)',
+        'badge-fg': 'rgb(var(--badge-fg) / <alpha-value>)',
+        feature: 'rgb(var(--feature) / <alpha-value>)',
+        'feature-fg': 'rgb(var(--feature-fg) / <alpha-value>)',
+        'feature-muted': 'rgb(var(--feature-muted) / <alpha-value>)',
+        'feature-accent': 'rgb(var(--feature-accent) / <alpha-value>)',
+        'feature-negative': 'rgb(var(--feature-negative) / <alpha-value>)',
       },
       boxShadow: {
-        soft: '0 1px 2px rgb(0 0 0 / 0.04), 0 6px 20px rgb(0 0 0 / 0.05)',
+        soft: '0 1px 2px rgb(17 35 32 / 0.03), 0 8px 24px rgb(17 35 32 / 0.04)',
         'soft-lg': '0 2px 6px rgb(0 0 0 / 0.06), 0 18px 50px rgb(0 0 0 / 0.12)',
-      },
-      keyframes: {
-        'fade-up': {
-          '0%': { opacity: '0', transform: 'translateY(6px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-      },
-      animation: {
-        'fade-up': 'fade-up 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

@@ -27,7 +27,6 @@ export type IconName =
   | 'moon'
   | 'monitor'
   | 'logout'
-  | 'vault'
   | 'calendar'
   | 'chevron-left'
   | 'chevron-right'
@@ -249,13 +248,6 @@ const paths: Record<IconName, JSX.Element> = {
     <>
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <path d="M16 17l5-5-5-5M21 12H9" />
-    </>
-  ),
-  vault: (
-    <>
-      <rect x="3" y="4" width="18" height="16" rx="2.5" />
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 8.5v1M12 14.5v1M8.5 12h1M14.5 12h1" />
     </>
   ),
   calendar: (

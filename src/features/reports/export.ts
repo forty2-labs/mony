@@ -2,20 +2,28 @@ import { BASE_CURRENCY } from '@/shared/lib/env';
 
 import type { ReportData } from './api';
 
-/** Quote a CSV field, escaping embedded quotes and forcing quotes when needed. */
-function csvCell(value: string | number | null): string {
+/**
+ * Quote a CSV field, escaping embedded quotes and forcing quotes when needed.
+ *
+ * Text cells that start with a formula trigger (= + - @, tab, CR) get a leading
+ * apostrophe so spreadsheet apps show them as text instead of evaluating them.
+ * Imported bank descriptions are untrusted, so this guards against CSV/formula
+ * injection. Numbers are left alone so negative values stay numeric.
+ */
+export function csvCell(value: string | number | null): string {
   if (value == null) return '';
-  const s = String(value);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  let s = String(value);
+  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 function toCsv(rows: (string | number | null)[][]): string {
   return rows.map((r) => r.map(csvCell).join(',')).join('\r\n');
 }
 
-/** A slug like `vault-report-this-month-2026-07-22` for download filenames. */
+/** A slug like `mony-report-this-month-2026-07-22` for download filenames. */
 function baseName(data: ReportData): string {
-  return `vault-report-${data.range.key.replace(/_/g, '-')}-${data.range.to}`;
+  return `mony-report-${data.range.key.replace(/_/g, '-')}-${data.range.to}`;
 }
 
 /** Transaction-level export: one row per expense/income in the range. */
@@ -46,7 +54,7 @@ export function transactionsCsv(data: ReportData): string {
 /** Summary export: headline totals plus the category breakdowns. */
 export function summaryCsv(data: ReportData): string {
   const rows: (string | number | null)[][] = [
-    ['Vault report', data.range.label],
+    ['mony report', data.range.label],
     ['Range', `${data.range.from} to ${data.range.to}`],
     [],
     ['Metric', `Value (${BASE_CURRENCY})`],

@@ -18,6 +18,8 @@ export interface ProfileRow {
   display_name: string | null;
   base_currency: string;
   inactivity_timeout_minutes: number;
+  /** Lower-cased names that mark a transfer between the user's own accounts. */
+  internal_transfer_names: string[];
   created_at: Timestamptz;
   updated_at: Timestamptz;
 }
@@ -225,7 +227,17 @@ export interface Database {
       >;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      record_loan_repayment: {
+        Args: { p_loan_id: UUID; p_amount_base: number };
+        Returns: Flatten<LoanRow>;
+      };
+      contribute_to_goal: {
+        Args: { p_goal_id: UUID; p_delta: number };
+        Returns: Flatten<SavingsGoalRow>;
+      };
+      account_balance: { Args: Record<string, never>; Returns: number };
+    };
     Enums: {
       billing_cycle: BillingCycle;
       loan_status: LoanStatus;

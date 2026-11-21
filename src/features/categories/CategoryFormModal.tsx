@@ -7,35 +7,36 @@ import type { CategoryRow } from '@/shared/types/database';
 
 import type { CategoryInput, CategoryKind } from './api';
 
+/**
+ * Earthy category colours that sit with the mony palette (forest, sage, sand,
+ * cream). No blues or purples. They're still varied enough to tell categories
+ * apart in charts. The first entry is the default for new categories.
+ */
 const PALETTE = [
-  // greens / teals / cyans  (first entry is the default for new categories)
-  '#34A368',
-  '#30D158',
-  '#4BE0A8',
-  '#40C8C0',
-  '#64D2FF',
-  // blues / indigos / purples
-  '#0A84FF',
-  '#409CFF',
-  '#5E5CE6',
-  '#7D7AFF',
-  '#BF5AF2',
-  '#DA8FFF',
-  // pinks / reds / oranges / yellows
-  '#FF6AC2',
-  '#FF375F',
-  '#FF453A',
-  '#FF6482',
-  '#FF9F0A',
-  '#FF8A3D',
-  '#E8A23A',
-  '#FFD60A',
+  // greens
+  '#5E7D4F',
+  '#1E3B2F',
+  '#7F8C6A',
+  '#7FA06A',
+  '#3E6B5A',
+  '#6E9C8E',
+  '#4F7A74',
+  // sands / golds / ambers
+  '#C8B48A',
+  '#A08A3C',
+  '#D4A24C',
+  '#C8873A',
+  // terracottas / reds / roses
+  '#B5523B',
+  '#9C4A3A',
+  '#D07A5B',
+  '#C27C8E',
+  '#A65E6E',
   // browns / neutrals
-  '#AC7B5A',
-  '#A2845E',
-  '#8E8E93',
-  '#98989D',
-  '#636366',
+  '#8A6A4A',
+  '#8A7B66',
+  '#9A9486',
+  '#5F5B52',
 ];
 
 const DEFAULT_ICON: IconName = 'tag';

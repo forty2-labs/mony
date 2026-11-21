@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import monzoLogo from '@/assets/monzo.svg';
 import revolutLogo from '@/assets/revolut.svg';
 import wiseLogo from '@/assets/wise.png';
+import { useProfile } from '@/features/profile/hooks';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { useToast } from '@/shared/components/Toast';
@@ -31,8 +32,12 @@ const FORMAT_OPTIONS: FormatOption[] = [
   ...PARSERS.map((p) => ({ id: p.id, description: p.description })),
 ];
 
+/** Statements are parsed in the browser; cap the size to keep the tab responsive. */
+const MAX_IMPORT_BYTES = 5_000_000;
+
 export function ImportPage() {
   const toast = useToast();
+  const profile = useProfile();
   const bulk = useBulkImport();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,9 +48,17 @@ export function ImportPage() {
 
   const handleFile = async (file: File) => {
     setFileName(file.name);
+    if (file.size > MAX_IMPORT_BYTES) {
+      toast.error(`That file is too large. The limit is ${MAX_IMPORT_BYTES / 1_000_000} MB.`);
+      return;
+    }
     try {
       const text = await file.text();
-      const result = parseStatement(text, format === 'auto' ? undefined : format);
+      const result = parseStatement(
+        text,
+        format === 'auto' ? undefined : format,
+        profile.data?.internal_transfer_names ?? [],
+      );
       if (result.transactions.length === 0) {
         toast.error('No transactions found in that file.');
         return;

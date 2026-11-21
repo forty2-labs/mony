@@ -3,3 +3,5 @@ node_modules
 package-lock.json
 *.tsbuildinfo
 supabase/migrations
+supabase/tests
+supabase/.temp

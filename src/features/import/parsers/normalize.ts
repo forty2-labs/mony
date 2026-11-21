@@ -1,4 +1,4 @@
-import { BASE_CURRENCY, INTERNAL_TRANSFER_NAMES } from '@/shared/lib/env';
+import { BASE_CURRENCY } from '@/shared/lib/env';
 import { toBaseAmount } from '@/shared/lib/money';
 
 import type { StatementRow } from './csv';
@@ -78,14 +78,14 @@ export function draftFromSigned(params: {
 }
 
 /**
- * True when `text` names one of the configured own-account identities — i.e. the
- * row is a transfer between the user's own accounts. Case-insensitive substring
- * match against `INTERNAL_TRANSFER_NAMES`. Empty config → always false.
+ * True when `text` names one of the user's own-account identities — i.e. the
+ * row is a transfer between their own accounts. Case-insensitive substring
+ * match against `names` (from the user's profile). No names → always false.
  */
-export function isInternalTransfer(text: string): boolean {
-  if (INTERNAL_TRANSFER_NAMES.length === 0) return false;
+export function isInternalTransfer(text: string, names: readonly string[]): boolean {
+  if (names.length === 0) return false;
   const hay = text.toLowerCase();
-  return INTERNAL_TRANSFER_NAMES.some((name) => hay.includes(name));
+  return names.some((name) => name && hay.includes(name.toLowerCase()));
 }
 
 /**
@@ -93,10 +93,13 @@ export function isInternalTransfer(text: string): boolean {
  * them `internalTransfer` and pre-deselect them, leaving the user to opt any
  * back in. Parser-agnostic, so it runs once after any parser produces drafts.
  */
-export function flagInternalTransfers(drafts: DraftTransaction[]): DraftTransaction[] {
-  if (INTERNAL_TRANSFER_NAMES.length === 0) return drafts;
+export function flagInternalTransfers(
+  drafts: DraftTransaction[],
+  names: readonly string[],
+): DraftTransaction[] {
+  if (names.length === 0) return drafts;
   return drafts.map((d) =>
-    isInternalTransfer(`${d.description} ${d.counterparty}`)
+    isInternalTransfer(`${d.description} ${d.counterparty}`, names)
       ? { ...d, internalTransfer: true, selected: false }
       : d,
   );

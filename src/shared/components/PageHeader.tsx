@@ -12,7 +12,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-3xl font-medium tracking-tight">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-content-muted">{subtitle}</p> : null}
       </div>
       {actions ? <div className="flex items-center gap-2">{actions}</div> : null}

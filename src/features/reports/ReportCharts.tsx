@@ -18,8 +18,8 @@ import { formatMoney } from '@/shared/lib/format';
 
 import type { ReportCategory, ReportTrendPoint } from './api';
 
-const INCOME_COLOR = '#31c07f';
-const EXPENSE_COLOR = '#f16d6d';
+const INCOME_COLOR = 'rgb(var(--success))';
+const EXPENSE_COLOR = 'rgb(var(--danger))';
 const NET_COLOR = 'rgb(var(--brand))';
 
 /** A tiny colour swatch + label, used for the chart legend. */

@@ -10,7 +10,7 @@ import {
 
 export type ThemePreference = 'light' | 'dark' | 'system';
 
-const STORAGE_KEY = 'vault.theme';
+const STORAGE_KEY = 'mony.theme';
 
 interface ThemeContextValue {
   /** The user's preference (may be "system"). */

@@ -4,18 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0b0b0f" />
+    <meta name="theme-color" content="#1B3530" />
     <meta
       name="description"
-      content="A private, local-first personal financial operating system."
+      content="Track spending, manage budgets and understand your money — mony."
     />
-    <title>Vault — Expense Tracker</title>
+    <title>mony — personal finance, simplified</title>
     <script>
       // Apply persisted theme before paint to avoid a flash of incorrect theme.
       (function () {
         try {
-          var stored = localStorage.getItem('vault.theme') || 'system';
+          var stored = localStorage.getItem('mony.theme') || 'system';
           var mql = window.matchMedia('(prefers-color-scheme: dark)');
           var dark = stored === 'dark' || (stored === 'system' && mql.matches);
           document.documentElement.classList.toggle('dark', dark);
