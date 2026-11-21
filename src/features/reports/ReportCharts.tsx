@@ -79,7 +79,14 @@ function carryForward(data: ReportTrendPoint[]): PlottedPoint[] {
  * net savings drawn as a line on the same axis so you can read the gap and the
  * savings trajectory at once.
  */
-export function TrendAreaChart({ data }: { data: ReportTrendPoint[] }) {
+export function TrendAreaChart({
+  data,
+  animate = true,
+}: {
+  data: ReportTrendPoint[];
+  /** Draw the series in; turned off on revisits so cached data shows at once. */
+  animate?: boolean;
+}) {
   const hasData = data.some((d) => d.income > 0 || d.expenses > 0);
   if (!hasData) return <EmptyState icon="reports" title="No activity in this range yet" />;
 
@@ -152,6 +159,7 @@ export function TrendAreaChart({ data }: { data: ReportTrendPoint[] }) {
             <Area
               type="monotone"
               dataKey="incomeLine"
+              isAnimationActive={animate}
               stroke={INCOME_COLOR}
               strokeWidth={2}
               fill="url(#rpt-income)"
@@ -159,6 +167,7 @@ export function TrendAreaChart({ data }: { data: ReportTrendPoint[] }) {
             <Area
               type="monotone"
               dataKey="expensesLine"
+              isAnimationActive={animate}
               stroke={EXPENSE_COLOR}
               strokeWidth={2}
               fill="url(#rpt-expense)"
@@ -166,6 +175,7 @@ export function TrendAreaChart({ data }: { data: ReportTrendPoint[] }) {
             <Line
               type="monotone"
               dataKey="netLine"
+              isAnimationActive={animate}
               stroke={NET_COLOR}
               strokeWidth={2}
               strokeDasharray="5 4"

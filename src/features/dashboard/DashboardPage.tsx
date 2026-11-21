@@ -13,6 +13,7 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { Skeleton } from '@/shared/components/Skeleton';
 import { StatCard } from '@/shared/components/StatCard';
 import { useToast } from '@/shared/components/Toast';
+import { useFirstVisit } from '@/shared/lib/firstVisit';
 import { formatMoney, todayISO } from '@/shared/lib/format';
 
 import { CategoryMonthTable } from './CategoryMonthTable';
@@ -55,6 +56,8 @@ export function DashboardPage() {
   const name = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'there';
 
   const [range, setRange] = usePersistedRange();
+  // Entrance animations only on the first visit; revisits show cached data at once.
+  const intro = useFirstVisit('dashboard');
   const { data: report, isLoading } = useReport(range);
   const { data: overview } = useOverview();
   const { data: openLoans } = useLoans('open');
@@ -121,7 +124,7 @@ export function DashboardPage() {
       ) : (
         <motion.div
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5"
-          initial="hidden"
+          initial={intro ? 'hidden' : false}
           animate="show"
           variants={{ show: { transition: { staggerChildren: 0.07 } } }}
         >
@@ -209,7 +212,7 @@ export function DashboardPage() {
           <Skeleton className="h-80 w-full" />
         ) : (
           <Suspense fallback={<Skeleton className="h-80 w-full" />}>
-            <TrendAreaChart data={report.trend} />
+            <TrendAreaChart data={report.trend} animate={intro} />
           </Suspense>
         )}
       </div>

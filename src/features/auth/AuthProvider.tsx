@@ -10,6 +10,7 @@ import {
 import type { Session, User } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { resetVisits } from '@/shared/lib/firstVisit';
 import { supabase } from '@/shared/lib/supabase';
 
 interface AuthContextValue {
@@ -52,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (previousUserId.current !== null && previousUserId.current !== userId) {
       queryClient.clear();
+      resetVisits();
     }
     previousUserId.current = userId;
   }, [userId, queryClient]);
