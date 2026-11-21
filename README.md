@@ -1,118 +1,92 @@
-# Vault — Personal Expense Tracker
+# mony
 
-A private, **local-first** financial operating system for a single user. Built to
-replace a Google Sheets workflow with something fast, beautiful, insightful and
-secure. React + Vite + TypeScript on the front end; Supabase (Postgres + Auth)
-with strict Row Level Security on the back end.
+**Your money. Your clarity.** A multi-user personal finance app: spending,
+income, budgets, loans and bank-statement import. React + Vite + TypeScript on
+Supabase (Postgres, Auth, Edge Functions). Each user's data is isolated by Row
+Level Security in the database, not the client.
 
-> **Status: Phases 1–3 complete.** See [Build phases](#build-phases).
+> **Status:** Phase 2 (security and multi-tenancy) complete. See [Roadmap](#roadmap).
 
-## Screenshots
+## Local development
 
-![Vault dashboard — light mode](https://github.com/user-attachments/assets/5e48a2c4-a8c1-4fe7-99dd-cb35bb326a4d)
-
-![Vault dashboard — dark mode](https://github.com/user-attachments/assets/327a4a91-dbf1-4c64-a1a0-f04db613d29e)
-
-## Features by phase
-
-| Phase | Scope                                                                 | Status     |
-| ----- | --------------------------------------------------------------------- | ---------- |
-| 1     | Project setup, Supabase + Auth, schema + RLS, theme system, app shell | ✅ Done    |
-| 2     | Expenses, Income, Categories, Dashboard data, Search & filtering      | ✅ Done    |
-| 3     | Budgets, Savings goals, Loans, Subscriptions                          | ✅ Done    |
-| 4     | Reports & charts, Import (CSV/Excel/PDF), multi-currency refinement   | ⏳ Planned |
-| 5     | Offline PWA, performance, testing, UX polish                          | ⏳ Planned |
-
-## Tech stack
-
-- **UI:** React 18, Vite 5, TypeScript, Tailwind CSS, Framer Motion
-- **Data/forms:** TanStack Query, React Hook Form, Zod, Recharts
-- **Routing:** React Router (lazy-loaded, code-split routes)
-- **Backend:** Supabase (PostgreSQL + Auth), Row Level Security on every table
-
-## Getting started
-
-### 1. Create a Supabase project
-
-Create a free project at [supabase.com](https://supabase.com) (or run a
-self-hosted instance for a fully local setup).
-
-### 2. Apply the database schema
-
-In the Supabase **SQL editor**, run the migrations in order:
-
-1. `supabase/migrations/0001_initial_schema.sql`
-2. `supabase/migrations/0002_seed_default_categories.sql`
-
-These create all tables, indexes, triggers, and **enable + force RLS** with
-owner-only policies. There are no public policies.
-
-### 3. Configure environment
-
-```bash
-cp .env.local.example .env.local
-```
-
-Fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from your project's
-API settings. Only the **anon** key belongs here — never the `service_role` key.
-
-### 4. Install & run
+Requires Node 20+ and Docker.
 
 ```bash
 npm install
-npm run dev          # start the app at http://localhost:5173
-npm run build        # type-check + production build
-npm run typecheck    # type-check only (fast)
-npm run lint         # eslint (includes import ordering & unused-import checks)
-npm run lint:fix     # eslint --fix — sort/group imports, drop dead imports
-npm run format       # prettier --write . — format the whole tree
+npm run db:start                 # local Supabase stack (first run pulls images)
+cp .env.local.example .env.local # local defaults work as-is
+npm run dev                      # http://localhost:5173
 ```
 
-On first sign-up, a profile row and a starter set of categories are created
-automatically via a database trigger.
+Auth emails go to Mailpit at <http://127.0.0.1:54324>; nothing is really sent.
+Studio is at <http://127.0.0.1:54323>. Stop with `npm run db:stop` (local data
+is kept).
 
-### Code style
+| Command            | What it does                                     |
+| ------------------ | ------------------------------------------------ |
+| `npm run build`    | type-check + production build                    |
+| `npm run lint`     | ESLint (import ordering, unused imports)         |
+| `npm run format`   | Prettier                                         |
+| `npm test`         | unit tests (no database needed)                  |
+| `npm run test:db`  | pgTAP: forced RLS on every table, no anon access |
+| `npm run test:rls` | cross-user attack suite against the local API    |
+| `npm run test:all` | all of the above                                 |
+| `npm run db:reset` | wipe and rebuild the local database              |
 
-Formatting is handled by **Prettier** ([.prettierrc.json](.prettierrc.json)) and
-import hygiene by **ESLint**. Imports are automatically sorted and grouped
-(third-party → `@/` internal alias → relative `./`, blank-line separated and
-alphabetized within each group), and unused imports are stripped. `npm run lint:fix`
-followed by `npm run format` applies everything; `eslint-config-prettier` keeps the
-two tools from conflicting. Editor tip: enable format-on-save with the Prettier and
-ESLint extensions.
+## Changing the schema
 
-## Architecture
+Migrations are never applied automatically.
 
-Feature-based modularity under `src/`:
+1. Add the next numbered file, e.g. `supabase/migrations/0005_loans.sql`. Never
+   edit an applied migration; it won't re-run.
+2. Apply locally: `npx supabase migration up` (keeps data) or `npm run db:reset`
+   (replays everything from empty, the stronger check).
+3. Update the hand-maintained types in `src/shared/types/database.ts`.
+4. Follow the RLS pattern in `0003_security_hardening.sql`, add cases to
+   `tests/rls/` for new tables or RPCs, and run `npm run test:all`.
+5. At deploy time only: `npx supabase db push --remote`.
 
+## Security model
+
+- **Database-level isolation:** forced RLS with owner-only policies on every
+  table; `anon` has no table privileges.
+- **No cross-user references:** composite `(user_id, x_id)` foreign keys, since
+  FK checks bypass RLS.
+- **Proven by tests:** `test:rls` has one real user attack another's rows with
+  forged IDs, foreign keys and RPCs.
+- **Server-side privilege only:** the service-role key is used solely by the
+  `delete-account` Edge Function.
+- **Data rights:** Settings → Export downloads everything as JSON; Delete
+  account cascades every row the user owns.
+
+## Deploying (hosted Supabase)
+
+1. Create a project (UK/EU region), then `npx supabase link --project-ref <ref>`.
+2. `npx supabase db push --remote` and `npx supabase functions deploy delete-account`.
+3. `npx supabase secrets set ALLOWED_ORIGINS=https://your-domain`.
+4. Mirror the `[auth]` settings from `supabase/config.toml` in the dashboard,
+   including the site URL and redirect allowlist. Also turn on leaked-password
+   protection and CAPTCHA, and set up a real SMTP provider.
+5. Keep API **max rows** at 1,000 or more.
+6. Build with only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+
+## Layout
+
+```text
+src/app/          App shell, router, query client
+src/features/     One folder per domain (auth, dashboard, expenses, loans, …)
+src/shared/       Reusable UI, lib (env, supabase, fetchAll), types
+supabase/         migrations/, functions/, tests/ (pgTAP)
+tests/rls/        Cross-user isolation tests
 ```
-src/
-  app/            App shell, router, query client
-  features/
-    auth/         Auth provider, login, protected routes, inactivity logout
-    dashboard/    Overview screen
-    expenses/ income/ budgets/ savings/ loans/ subscriptions/ reports/ settings/
-  shared/
-    components/   Reusable UI (layout, cards, icons, error boundary)
-    lib/          env, supabase client, formatting, cn()
-    theme/        Light/dark/system theme system
-    types/        Database type contract
-supabase/migrations/   SQL schema + RLS
-```
 
-### Security model
+## Roadmap
 
-- **RLS everywhere.** Every table has `enable` + `force` row level security and an
-  owner-only policy keyed on `auth.uid()`. `audit_logs` is append-only.
-- **No secrets in the frontend.** Only the public anon key is exposed; it grants
-  nothing without an authenticated, RLS-gated session.
-- **Auto-logout** after a configurable period of inactivity.
-- **Frozen FX.** Each transaction stores its original amount, currency, exchange
-  rate and converted base amount — historical values never change.
-
-## Build phases
-
-This project is built in deliberate phases. At the end of each phase the work is
-summarized and paused for review before the next phase begins. We are currently
-at the **end of Phase 3**, with Phase 4 (Reports & charts, Import, multi-currency
-refinement) up next.
+| Phase | Scope                                                          | Status  |
+| ----- | -------------------------------------------------------------- | ------- |
+| 1     | Audit and plan                                                 | Done    |
+| 2     | Security and multi-tenancy                                     | Done    |
+| 3     | App improvements: loans, recurring, import history, onboarding | Next    |
+| 4     | Landing page and interactive demo                              | Planned |
+| 5     | Monetisation: Stripe, entitlements                             | Planned |
+| 6     | Launch prep: security review, legal, deployment                | Planned |
