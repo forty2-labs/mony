@@ -125,11 +125,7 @@ function LoanForm({
           <label className="mb-1.5 block text-sm font-medium" htmlFor="loan-status">
             Status
           </label>
-          <Select
-            id="loan-status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as LoanStatus)}
-          >
+          <Select id="loan-status" value={status} onChange={(v) => setStatus(v as LoanStatus)}>
             {STATUS_OPTIONS.map((s) => (
               <option key={s.value} value={s.value}>
                 {s.label}

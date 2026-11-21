@@ -103,7 +103,7 @@ export function IncomePage() {
             className="w-auto"
             wrapperClassName="w-auto"
             value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
+            onChange={(v) => setCategoryId(v)}
             aria-label="Category"
           >
             <option value="">All categories</option>

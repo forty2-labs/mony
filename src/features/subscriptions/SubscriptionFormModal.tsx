@@ -119,11 +119,7 @@ function SubscriptionForm({
           <label className="mb-1.5 block text-sm font-medium" htmlFor="sub-cycle">
             Billing cycle
           </label>
-          <Select
-            id="sub-cycle"
-            value={cycle}
-            onChange={(e) => setCycle(e.target.value as BillingCycle)}
-          >
+          <Select id="sub-cycle" value={cycle} onChange={(v) => setCycle(v as BillingCycle)}>
             {CYCLES.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}

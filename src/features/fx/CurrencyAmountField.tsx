@@ -101,7 +101,7 @@ export function CurrencyAmountField({
         <Select
           wrapperClassName="w-28 shrink-0"
           value={currencyOriginal}
-          onChange={(e) => onChange({ ...value, currencyOriginal: e.target.value })}
+          onChange={(v) => onChange({ ...value, currencyOriginal: v })}
         >
           {CURRENCIES.map((c) => (
             <option key={c.code} value={c.code}>
