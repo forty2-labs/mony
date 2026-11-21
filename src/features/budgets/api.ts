@@ -1,3 +1,4 @@
+import { fetchAll } from '@/shared/lib/fetchAll';
 import { supabase } from '@/shared/lib/supabase';
 import type { BudgetRow } from '@/shared/types/database';
 
@@ -39,15 +40,18 @@ export async function listBudgets(month: string): Promise<BudgetRow[]> {
 /** Sum of (non-deleted) expenses per category for the given month. */
 export async function spendByCategory(month: string): Promise<Record<string, number>> {
   const { start, end } = monthBounds(month);
-  const { data, error } = await supabase
-    .from('expenses')
-    .select('category_id, amount_base')
-    .is('deleted_at', null)
-    .gte('occurred_on', start)
-    .lt('occurred_on', end);
-  if (error) throw error;
+  const data = await fetchAll((from, to) =>
+    supabase
+      .from('expenses')
+      .select('category_id, amount_base')
+      .is('deleted_at', null)
+      .gte('occurred_on', start)
+      .lt('occurred_on', end)
+      .order('id')
+      .range(from, to),
+  );
   const totals: Record<string, number> = {};
-  for (const row of data ?? []) {
+  for (const row of data) {
     if (!row.category_id) continue;
     totals[row.category_id] = (totals[row.category_id] ?? 0) + Number(row.amount_base);
   }

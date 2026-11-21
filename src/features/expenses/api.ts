@@ -1,3 +1,4 @@
+import { fetchAll } from '@/shared/lib/fetchAll';
 import { supabase } from '@/shared/lib/supabase';
 import type { ExpenseRow } from '@/shared/types/database';
 
@@ -43,35 +44,39 @@ async function currentUserId(): Promise<string> {
 }
 
 export async function listExpenses(filters: ExpenseFilters = {}): Promise<ExpenseWithCategory[]> {
-  let q = supabase.from('expenses').select(SELECT).is('deleted_at', null);
+  const build = () => {
+    let q = supabase.from('expenses').select(SELECT).is('deleted_at', null);
 
-  if (filters.categoryId) q = q.eq('category_id', filters.categoryId);
-  if (filters.currency) q = q.eq('currency_original', filters.currency);
-  if (filters.from) q = q.gte('occurred_on', filters.from);
-  if (filters.to) q = q.lte('occurred_on', filters.to);
-  if (filters.minAmount != null) q = q.gte('amount_base', filters.minAmount);
-  if (filters.maxAmount != null) q = q.lte('amount_base', filters.maxAmount);
-  if (filters.search) q = q.ilike('notes', `%${filters.search}%`);
+    if (filters.categoryId) q = q.eq('category_id', filters.categoryId);
+    if (filters.currency) q = q.eq('currency_original', filters.currency);
+    if (filters.from) q = q.gte('occurred_on', filters.from);
+    if (filters.to) q = q.lte('occurred_on', filters.to);
+    if (filters.minAmount != null) q = q.gte('amount_base', filters.minAmount);
+    if (filters.maxAmount != null) q = q.lte('amount_base', filters.maxAmount);
+    if (filters.search) q = q.ilike('notes', `%${filters.search}%`);
 
-  switch (filters.sort ?? 'date_desc') {
-    case 'date_asc':
-      q = q.order('occurred_on', { ascending: true });
-      break;
-    case 'amount_desc':
-      q = q.order('amount_base', { ascending: false });
-      break;
-    case 'amount_asc':
-      q = q.order('amount_base', { ascending: true });
-      break;
-    default:
-      q = q.order('occurred_on', { ascending: false }).order('created_at', {
-        ascending: false,
-      });
-  }
+    switch (filters.sort ?? 'date_desc') {
+      case 'date_asc':
+        q = q.order('occurred_on', { ascending: true });
+        break;
+      case 'amount_desc':
+        q = q.order('amount_base', { ascending: false });
+        break;
+      case 'amount_asc':
+        q = q.order('amount_base', { ascending: true });
+        break;
+      default:
+        q = q.order('occurred_on', { ascending: false }).order('created_at', {
+          ascending: false,
+        });
+    }
 
-  const { data, error } = await q;
-  if (error) throw error;
-  return (data ?? []) as unknown as ExpenseWithCategory[];
+    // Unique tiebreak so pagination is stable.
+    return q.order('id');
+  };
+
+  const rows = await fetchAll((from, to) => build().range(from, to));
+  return rows as unknown as ExpenseWithCategory[];
 }
 
 export async function createExpense(input: ExpenseInput): Promise<ExpenseRow> {

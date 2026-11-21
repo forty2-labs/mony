@@ -53,33 +53,15 @@ export async function updateLoan(id: string, patch: Partial<LoanInput>): Promise
 }
 
 /**
- * Record a repayment (in base currency). Adds to amount_repaid_base and derives
- * the new status: fully covered -> repaid, some -> partially_repaid, none ->
- * outstanding. Never exceeds the loan's base amount.
+ * Record a repayment (in base currency). The database applies it atomically:
+ * it adds to amount_repaid_base (capped at the loan amount) and derives the new
+ * status, so concurrent repayments can't overwrite each other.
  */
 export async function recordRepayment(id: string, amountBase: number): Promise<LoanRow> {
-  const { data: row, error: readErr } = await supabase
-    .from('loans')
-    .select('amount_base, amount_repaid_base, status')
-    .eq('id', id)
-    .single();
-  if (readErr) throw readErr;
-
-  const total = Number(row.amount_base);
-  const repaid = Math.min(total, Number(row.amount_repaid_base) + amountBase);
-  let status: LoanStatus = row.status as LoanStatus;
-  if (status !== 'written_off') {
-    if (repaid >= total && total > 0) status = 'repaid';
-    else if (repaid > 0) status = 'partially_repaid';
-    else status = 'outstanding';
-  }
-
-  const { data, error } = await supabase
-    .from('loans')
-    .update({ amount_repaid_base: repaid, status })
-    .eq('id', id)
-    .select('*')
-    .single();
+  const { data, error } = await supabase.rpc('record_loan_repayment', {
+    p_loan_id: id,
+    p_amount_base: amountBase,
+  });
   if (error) throw error;
   return data;
 }

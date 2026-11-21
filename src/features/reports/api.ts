@@ -1,3 +1,4 @@
+import { fetchAll } from '@/shared/lib/fetchAll';
 import { formatDate } from '@/shared/lib/format';
 import { supabase } from '@/shared/lib/supabase';
 
@@ -272,53 +273,30 @@ function buildTrend(transactions: ReportTx[], range: ResolvedRange): ReportTrend
 export async function fetchReport(selection: RangeSelection): Promise<ReportData> {
   const range = resolveRange(selection);
 
-  const requests = [
-    supabase
-      .from('expenses')
-      .select(EXP_SELECT)
-      .is('deleted_at', null)
-      .gte('occurred_on', range.from)
-      .lte('occurred_on', range.to)
-      .order('occurred_on', { ascending: false }),
-    supabase
-      .from('income')
-      .select(INC_SELECT)
-      .is('deleted_at', null)
-      .gte('occurred_on', range.from)
-      .lte('occurred_on', range.to)
-      .order('occurred_on', { ascending: false }),
-  ] as const;
+  // Every read is paged: PostgREST caps each response at max_rows, so a single
+  // request would silently drop rows (and skew every total) on larger ranges.
+  const rowsIn = (table: 'expenses' | 'income', select: string, from: string, to: string) =>
+    fetchAll((start, end) =>
+      supabase
+        .from(table)
+        .select(select)
+        .is('deleted_at', null)
+        .gte('occurred_on', from)
+        .lte('occurred_on', to)
+        .order('occurred_on', { ascending: false })
+        .order('id')
+        .range(start, end),
+    );
 
-  const prevRequests = range.prev
-    ? ([
-        supabase
-          .from('expenses')
-          .select('amount_base')
-          .is('deleted_at', null)
-          .gte('occurred_on', range.prev.from)
-          .lte('occurred_on', range.prev.to),
-        supabase
-          .from('income')
-          .select('amount_base')
-          .is('deleted_at', null)
-          .gte('occurred_on', range.prev.from)
-          .lte('occurred_on', range.prev.to),
-      ] as const)
-    : null;
-
-  const [expRes, incRes, prevExpRes, prevIncRes] = await Promise.all([
-    requests[0],
-    requests[1],
-    prevRequests ? prevRequests[0] : Promise.resolve(null),
-    prevRequests ? prevRequests[1] : Promise.resolve(null),
+  const [expRows, incRows, prevExpRows, prevIncRows] = await Promise.all([
+    rowsIn('expenses', EXP_SELECT, range.from, range.to),
+    rowsIn('income', INC_SELECT, range.from, range.to),
+    range.prev ? rowsIn('expenses', 'amount_base', range.prev.from, range.prev.to) : null,
+    range.prev ? rowsIn('income', 'amount_base', range.prev.from, range.prev.to) : null,
   ]);
 
-  for (const res of [expRes, incRes, prevExpRes, prevIncRes]) {
-    if (res && res.error) throw res.error;
-  }
-
-  const expenses = (expRes.data ?? []) as unknown as ExpenseRow[];
-  const income = (incRes.data ?? []) as unknown as IncomeRow[];
+  const expenses = expRows as unknown as ExpenseRow[];
+  const income = incRows as unknown as IncomeRow[];
 
   const totalExpenses = expenses.reduce((a, e) => a + Number(e.amount_base), 0);
   const totalIncome = income.reduce((a, i) => a + Number(i.amount_base), 0);
@@ -346,17 +324,13 @@ export async function fetchReport(selection: RangeSelection): Promise<ReportData
   const trend = buildTrend(allTx, range);
   const monthsInRange = monthsSpan(trendNaturalStart(allTx, range), range.to.slice(0, 7)).length;
 
+  const sumBase = (rows: unknown[]) =>
+    (rows as { amount_base: number }[]).reduce((a, r) => a + Number(r.amount_base), 0);
   const prev =
-    prevExpRes && prevIncRes
+    prevExpRows && prevIncRows
       ? (() => {
-          const pe = ((prevExpRes.data ?? []) as { amount_base: number }[]).reduce(
-            (a, r) => a + Number(r.amount_base),
-            0,
-          );
-          const pi = ((prevIncRes.data ?? []) as { amount_base: number }[]).reduce(
-            (a, r) => a + Number(r.amount_base),
-            0,
-          );
+          const pe = sumBase(prevExpRows);
+          const pi = sumBase(prevIncRows);
           return { totalIncome: pi, totalExpenses: pe, net: pi - pe };
         })()
       : undefined;

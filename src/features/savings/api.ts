@@ -50,18 +50,16 @@ export async function updateGoal(
 }
 
 /**
- * Add (or, with a negative delta, withdraw) funds from a goal. Reads the current
- * balance then writes the clamped result — a goal can't go below zero.
+ * Add (or, with a negative delta, withdraw) funds from a goal. The database
+ * applies the change atomically and clamps the balance at zero.
  */
 export async function contribute(id: string, delta: number): Promise<SavingsGoalRow> {
-  const { data: row, error: readErr } = await supabase
-    .from('savings_goals')
-    .select('current_amount_base')
-    .eq('id', id)
-    .single();
-  if (readErr) throw readErr;
-  const next = Math.max(0, Number(row.current_amount_base) + delta);
-  return updateGoal(id, { current_amount_base: next });
+  const { data, error } = await supabase.rpc('contribute_to_goal', {
+    p_goal_id: id,
+    p_delta: delta,
+  });
+  if (error) throw error;
+  return data;
 }
 
 export async function deleteGoal(id: string): Promise<void> {

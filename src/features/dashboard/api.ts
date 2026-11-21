@@ -1,3 +1,4 @@
+import { fetchAll } from '@/shared/lib/fetchAll';
 import { supabase } from '@/shared/lib/supabase';
 
 export interface RecentTx {
@@ -70,17 +71,14 @@ export function monthLabel(month: string, opts?: Intl.DateTimeFormatOptions): st
   );
 }
 
-const sum = (rows: { amount_base: number }[] | null) =>
-  (rows ?? []).reduce((acc, r) => acc + Number(r.amount_base), 0);
-
 /**
  * All-time running balance plus the most recent activity feed. Kept separate
  * from the range-scoped report so it doesn't refetch when the range changes.
  */
 export async function fetchOverview(): Promise<Overview> {
-  const [allExpRes, allIncRes, recentExpRes, recentIncRes] = await Promise.all([
-    supabase.from('expenses').select('amount_base').is('deleted_at', null),
-    supabase.from('income').select('amount_base').is('deleted_at', null),
+  const [balanceRes, recentExpRes, recentIncRes] = await Promise.all([
+    // Summed in Postgres: fetching every row would hit the API's max_rows cap.
+    supabase.rpc('account_balance'),
     supabase
       .from('expenses')
       .select('id, amount_base, occurred_on, notes, category:categories(name, color, icon)')
@@ -95,7 +93,7 @@ export async function fetchOverview(): Promise<Overview> {
       .limit(6),
   ]);
 
-  for (const res of [allExpRes, allIncRes, recentExpRes, recentIncRes]) {
+  for (const res of [balanceRes, recentExpRes, recentIncRes]) {
     if (res.error) throw res.error;
   }
 
@@ -124,7 +122,7 @@ export async function fetchOverview(): Promise<Overview> {
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, 6);
 
-  return { balance: sum(allIncRes.data) - sum(allExpRes.data), recent };
+  return { balance: Number(balanceRes.data ?? 0), recent };
 }
 
 /**
@@ -143,16 +141,19 @@ export async function fetchExpenseHeatmap(): Promise<ExpenseHeatmap> {
   startDate.setDate(startDate.getDate() - startDate.getDay()); // Sunday = 0
   const start = isoLocal(startDate);
 
-  const { data, error } = await supabase
-    .from('expenses')
-    .select('amount_base, occurred_on')
-    .is('deleted_at', null)
-    .gte('occurred_on', start)
-    .lte('occurred_on', end);
-  if (error) throw error;
+  const data = await fetchAll((from, to) =>
+    supabase
+      .from('expenses')
+      .select('amount_base, occurred_on')
+      .is('deleted_at', null)
+      .gte('occurred_on', start)
+      .lte('occurred_on', end)
+      .order('id')
+      .range(from, to),
+  );
 
   const totals = new Map<string, number>();
-  for (const r of (data ?? []) as { amount_base: number; occurred_on: string }[]) {
+  for (const r of data) {
     totals.set(r.occurred_on, (totals.get(r.occurred_on) ?? 0) + Number(r.amount_base));
   }
 
