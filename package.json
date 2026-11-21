@@ -1,9 +1,9 @@
 {
-  "name": "expense-tracker",
+  "name": "mony",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Local-first personal expense tracker & financial insights platform",
+  "description": "mony \u2014 personal finance, simplified. Multi-user personal finance SaaS.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -12,7 +12,15 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:rls": "vitest run --config vitest.rls.config.ts",
+    "test:db": "supabase test db",
+    "test:all": "npm run test && npm run test:db && npm run test:rls",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
@@ -22,17 +30,18 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
-    "react-router-dom": "^6.26.2",
+    "react-router": "^7.18.6",
+    "react-router-dom": "^7.18.6",
     "recharts": "^2.12.7",
     "tailwind-merge": "^2.5.2",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@types/node": "^22.20.0",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.2",
+    "@vitejs/plugin-react": "^5.2.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.12.0",
     "eslint-config-prettier": "^10.1.8",
@@ -43,9 +52,11 @@
     "globals": "^17.7.0",
     "postcss": "^8.4.47",
     "prettier": "^3.9.5",
+    "supabase": "^3.2.0",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.62.1",
-    "vite": "^5.4.8"
+    "vite": "^7.3.8",
+    "vitest": "^4.1.12"
   }
 }
