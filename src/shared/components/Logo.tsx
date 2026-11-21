@@ -18,14 +18,14 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
     >
       <rect width="32" height="32" rx="16" fill="rgb(var(--badge))" />
       <path
-        d="M9 12.5V22M9 15.5a3 3 0 0 1 6 0V22M15 15.5a3 3 0 0 1 6 0V22"
+        d="M7.75 11.25v9.5M7.75 14.25a3 3 0 0 1 6 0v6.5M13.75 14.25a3 3 0 0 1 6 0v6.5"
         fill="none"
         stroke="rgb(var(--brand-fg))"
         strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="25" cy="21" r="1.75" fill="rgb(var(--badge-fg))" />
+      <circle cx="23.75" cy="19.75" r="1.75" fill="rgb(var(--badge-fg))" />
     </svg>
   );
 }
