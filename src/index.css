@@ -23,6 +23,14 @@
     --badge: 27 53 48;
     --badge-fg: 199 242 105;
 
+    /* Logo: a brand constant in both themes (deep green tile, white arm, lime
+       tail); only the tile edge and the wordmark tail adapt to the surface. */
+    --logo-tile: 27 53 48;
+    --logo-ink: 255 255 255;
+    --logo-accent: 199 242 105;
+    --logo-edge: 27 53 48;
+    --logo-tail: 118 164 36;
+
     /* The one highlighted "feature" card among white ones. */
     --feature: 27 53 48;
     --feature-fg: 255 255 255;
@@ -50,6 +58,9 @@
 
     --badge: 199 242 105;
     --badge-fg: 17 35 32;
+
+    --logo-edge: 70 98 50; /* lime at ~30% over the dark surfaces */
+    --logo-tail: 199 242 105;
 
     --feature: 199 242 105;
     --feature-fg: 17 35 32;
