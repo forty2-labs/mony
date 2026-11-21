@@ -203,8 +203,7 @@ export function DashboardPage() {
       )}
 
       {/* Trend */}
-      <div className="card mt-4 p-5">
-        <h2 className="mb-4 text-sm font-semibold">Income vs expenses</h2>
+      <section aria-label="Income vs expenses" className="card mt-4 p-5">
         {isLoading || !report ? (
           <Skeleton className="h-80 w-full" />
         ) : (
@@ -212,20 +211,12 @@ export function DashboardPage() {
             <TrendAreaChart data={report.trend} />
           </Suspense>
         )}
-      </div>
+      </section>
 
       {/* Category × month breakdown */}
-      <div className="card mt-4 p-5">
-        <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="text-sm font-semibold">By category, per month</h2>
-          {report ? (
-            <span className="text-xs text-content-muted">
-              {report.txCount} {report.txCount === 1 ? 'entry' : 'entries'}
-            </span>
-          ) : null}
-        </div>
+      <section aria-label="By category, per month" className="card mt-4 p-5">
         <CategoryMonthTable rows={report?.transactions} range={report?.range} loading={isLoading} />
-      </div>
+      </section>
 
       <ExpenseFormModal
         open={quickAdd}
