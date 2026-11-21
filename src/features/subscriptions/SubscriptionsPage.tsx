@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 
+import { useConfirm } from '@/shared/components/ConfirmDialog';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -28,6 +29,7 @@ export function SubscriptionsPage() {
   const { data: subs, isLoading } = useSubscriptions();
   const { create, update, remove } = useSubscriptionMutations();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SubscriptionRow | null>(null);
@@ -71,8 +73,12 @@ export function SubscriptionsPage() {
     );
   };
 
-  const handleDelete = (s: SubscriptionRow) => {
-    if (!confirm(`Delete the subscription “${s.name}”? This cannot be undone.`)) return;
+  const handleDelete = async (s: SubscriptionRow) => {
+    const ok = await confirm({
+      title: `Delete “${s.name}”?`,
+      message: 'This can’t be undone.',
+    });
+    if (!ok) return;
     remove.mutate(s.id, {
       onSuccess: () => toast.success('Subscription deleted'),
       onError: (e) => toast.error(e instanceof Error ? e.message : 'Delete failed'),

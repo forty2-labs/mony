@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 
+import { useConfirm } from '@/shared/components/ConfirmDialog';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { Icon } from '@/shared/components/Icon';
 import { PageHeader } from '@/shared/components/PageHeader';
@@ -18,6 +19,7 @@ export function SavingsPage() {
   const { data: goals, isLoading } = useGoals();
   const { create, update, adjust, remove } = useGoalMutations();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SavingsGoalRow | null>(null);
@@ -68,8 +70,12 @@ export function SavingsPage() {
     );
   };
 
-  const handleDelete = (g: SavingsGoalRow) => {
-    if (!confirm(`Delete the goal “${g.name}”? This cannot be undone.`)) return;
+  const handleDelete = async (g: SavingsGoalRow) => {
+    const ok = await confirm({
+      title: `Delete “${g.name}”?`,
+      message: 'The goal and the progress saved towards it will be removed. This can’t be undone.',
+    });
+    if (!ok) return;
     remove.mutate(g.id, {
       onSuccess: () => toast.success('Goal deleted'),
       onError: (e) => toast.error(e instanceof Error ? e.message : 'Delete failed'),

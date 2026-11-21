@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import { CategoryBadge } from '@/shared/components/CategoryBadge';
+import { useConfirm } from '@/shared/components/ConfirmDialog';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { type CommonFilters, EMPTY_FILTERS, FilterBar } from '@/shared/components/FilterBar';
 import { Icon } from '@/shared/components/Icon';
@@ -41,6 +42,7 @@ export function IncomePage() {
   const { data: income, isLoading } = useIncome(apiFilters);
   const { create, update, remove } = useIncomeMutations();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<IncomeWithCategory | null>(null);
@@ -64,8 +66,12 @@ export function IncomePage() {
     else create.mutate(input, opts);
   };
 
-  const handleDelete = (e: IncomeWithCategory) => {
-    if (!confirm('Delete this income entry?')) return;
+  const handleDelete = async (e: IncomeWithCategory) => {
+    const ok = await confirm({
+      title: 'Delete this income entry?',
+      message: 'It will be removed from your lists and totals.',
+    });
+    if (!ok) return;
     remove.mutate(e.id, {
       onSuccess: () => toast.success('Income deleted'),
       onError: (err) => toast.error(err instanceof Error ? err.message : 'Delete failed'),
