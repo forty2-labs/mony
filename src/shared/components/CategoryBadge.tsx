@@ -17,7 +17,7 @@ export function CategoryBadge({
   const name = (icon as IconName) || FALLBACK_ICON;
   return (
     <span
-      className="grid shrink-0 place-items-center rounded-xl"
+      className="grid shrink-0 place-items-center rounded-full"
       style={{ backgroundColor: c + '22', color: c, width: size, height: size }}
     >
       <Icon name={name} size={Math.round(size * 0.5)} />

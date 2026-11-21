@@ -60,7 +60,7 @@ export function AutoLogo({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        'inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-br from-brand to-brand-2 px-3 text-sm font-semibold text-brand-fg shadow-soft ring-1 ring-inset ring-white/15',
+        'inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-semibold text-brand-fg shadow-soft ring-1 ring-inset ring-white/15',
         className,
       )}
     >

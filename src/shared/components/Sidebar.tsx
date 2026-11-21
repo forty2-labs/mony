@@ -7,25 +7,15 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { cn } from '../lib/cn';
 import { NAV_ITEMS } from '../navigation';
 import { Icon } from './Icon';
+import { LogoMark, Wordmark } from './Logo';
 
-const STORAGE_KEY = 'vault:sidebar-collapsed';
+const STORAGE_KEY = 'mony:sidebar-collapsed';
 
 /**
- * Per-item icon accent (inactive state). Uses semantic tokens only — the active
- * item overrides these with brand-fg on the gradient pill.
+ * Inactive nav icons share one quiet green-grey tone; the active item becomes a
+ * brand pill (deep green with a lime icon, or lime in dark mode).
  */
-const ACCENT: Record<string, string> = {
-  '/': 'text-brand',
-  '/expenses': 'text-danger',
-  '/income': 'text-success',
-  '/budgets': 'text-warning',
-  '/savings': 'text-success',
-  '/loans': 'text-brand-2',
-  '/subscriptions': 'text-brand',
-  '/categories': 'text-warning',
-  '/import': 'text-success',
-  '/settings': 'text-content-muted',
-};
+const ICON_TONE = 'text-brand-2';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 /** One shared curve for every collapse motion, so nothing races. */
@@ -59,7 +49,7 @@ export function Sidebar() {
     <motion.aside
       animate={{ width: collapsed ? 78 : 240 }}
       transition={GLIDE}
-      className="relative flex h-full shrink-0 flex-col border-r border-border bg-surface/60 py-4 backdrop-blur z-10"
+      className="relative flex h-full shrink-0 flex-col border-r border-border bg-surface py-4 z-10"
     >
       {/* Collapse toggle — floats on the divider edge, outside the clip region */}
       <button
@@ -67,7 +57,7 @@ export function Sidebar() {
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         aria-expanded={!collapsed}
-        className="fixed -right-3 top-[42px] grid h-6 w-6 place-items-center rounded-full border border-border bg-surface text-content-muted shadow-soft transition hover:scale-110 hover:text-content"
+        className="absolute -right-3 top-[42px] grid h-6 w-6 place-items-center rounded-full border border-border bg-surface text-content-muted shadow-soft transition hover:scale-110 hover:text-content"
       >
         <Icon name={collapsed ? 'chevron-right' : 'chevron-left'} size={14} />
       </button>
@@ -76,10 +66,14 @@ export function Sidebar() {
       <div className="flex h-full min-h-0 flex-col overflow-hidden">
         {/* Brand */}
         <div className="flex items-center gap-2.5 px-4 pb-5">
-          <span className="grid h-9 w-9 shrink-0 place-items-center text-brand-fg shadow-soft">
-            <img src="/favicon.svg" alt="logo" />
-          </span>
-          {label('Vault', 'text-[15px] font-semibold tracking-tight')}
+          <LogoMark size={36} />
+          <motion.span
+            animate={{ opacity: collapsed ? 0 : 1 }}
+            transition={collapsed ? { duration: 0.12, ease: 'linear' } : GLIDE}
+            className="whitespace-nowrap"
+          >
+            <Wordmark className="text-[19px]" />
+          </motion.span>
         </div>
 
         <nav className="flex-1 space-y-1 px-3">
@@ -97,8 +91,8 @@ export function Sidebar() {
                   className={cn(
                     'relative isolate flex items-center gap-3 px-2.5 py-2 text-sm font-medium transition-colors',
                     isActive
-                      ? 'text-brand-fg bg-gradient-to-br from-brand to-brand-2 rounded-md'
-                      : 'text-content-muted group-hover:bg-surface-2/70 group-hover:text-content',
+                      ? 'rounded-full bg-brand text-brand-fg'
+                      : 'rounded-full text-content-muted group-hover:bg-surface-2/70 group-hover:text-content',
                   )}
                 >
                   <motion.span
@@ -106,7 +100,11 @@ export function Sidebar() {
                     transition={GLIDE}
                     className={cn(
                       'grid h-8 w-8 shrink-0 place-items-center transition-colors',
-                      !isActive && ACCENT[item.to],
+                      isActive
+                        ? 'text-badge-fg'
+                        : item.to === '/settings'
+                          ? 'text-content-muted'
+                          : ICON_TONE,
                     )}
                   >
                     <Icon name={item.icon} size={20} />

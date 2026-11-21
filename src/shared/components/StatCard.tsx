@@ -5,28 +5,12 @@ import { Icon, type IconName } from './Icon';
 
 type Accent = 'brand' | 'success' | 'danger' | 'warning' | 'neutral';
 
-const ACCENT: Record<Accent, { text: string; chip: string; glow: string }> = {
-  brand: { text: 'text-brand', chip: 'bg-brand/10 text-brand', glow: 'rgb(var(--brand) / 0.16)' },
-  success: {
-    text: 'text-success',
-    chip: 'bg-success/10 text-success',
-    glow: 'rgb(var(--success) / 0.16)',
-  },
-  danger: {
-    text: 'text-danger',
-    chip: 'bg-danger/10 text-danger',
-    glow: 'rgb(var(--danger) / 0.16)',
-  },
-  warning: {
-    text: 'text-warning',
-    chip: 'bg-warning/10 text-warning',
-    glow: 'rgb(var(--warning) / 0.16)',
-  },
-  neutral: {
-    text: 'text-content',
-    chip: 'bg-surface-2 text-content-muted',
-    glow: 'rgb(0 0 0 / 0)',
-  },
+const ACCENT: Record<Accent, { text: string }> = {
+  brand: { text: 'text-brand' },
+  success: { text: 'text-success' },
+  danger: { text: 'text-danger' },
+  warning: { text: 'text-warning' },
+  neutral: { text: 'text-content' },
 };
 
 export function StatCard({
@@ -36,6 +20,7 @@ export function StatCard({
   tag,
   accent = 'neutral',
   icon,
+  feature = false,
   children,
 }: {
   label: string;
@@ -45,37 +30,60 @@ export function StatCard({
   tag?: string;
   accent?: Accent;
   icon?: IconName;
+  /**
+   * Render as the page's one highlighted card (deep green, or lime in dark
+   * mode). Use it for a single headline figure; `accent="danger"` still flags
+   * a negative value.
+   */
+  feature?: boolean;
   children?: ReactNode;
 }) {
   const a = ACCENT[accent];
+  const muted = feature ? 'text-feature-muted' : 'text-content-muted';
   return (
-    <div className="card relative h-full overflow-hidden p-5">
-      {/* soft corner glow tinted by accent */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl"
-        style={{ background: a.glow }}
-      />
+    <div className={cn('relative h-full overflow-hidden p-5', feature ? 'card-feature' : 'card')}>
+      {/* Concentric rings echo the round icon badges. Decorative only. */}
+      {feature ? (
+        <svg
+          aria-hidden
+          viewBox="0 0 200 200"
+          className="pointer-events-none absolute -bottom-20 -right-20 h-52 w-52 opacity-[0.12]"
+        >
+          <circle cx="100" cy="100" r="60" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      ) : null}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wide text-content-muted">{label}</p>
-          {tag ? <p className="mt-0.5 text-xs text-content-muted">{tag}</p> : null}
+          <p className={cn('text-sm font-medium', feature ? 'text-feature-fg' : 'text-content')}>
+            {label}
+          </p>
+          {tag ? <p className={cn('mt-0.5 text-xs', muted)}>{tag}</p> : null}
         </div>
         {icon ? (
-          <span className={cn('grid h-8 w-8 place-items-center rounded-xl', a.chip)}>
-            <Icon name={icon} size={16} />
+          <span
+            className={cn(
+              'grid h-10 w-10 shrink-0 place-items-center rounded-full',
+              feature ? 'bg-feature-fg/10 text-feature-accent' : 'bg-badge text-badge-fg',
+            )}
+          >
+            <Icon name={icon} size={18} />
           </span>
         ) : null}
       </div>
       <p
         className={cn(
-          'mt-2 text-[1.65rem] font-semibold leading-tight tracking-tight tabular-nums',
-          accent !== 'neutral' && a.text,
+          'mt-3 text-[1.75rem] font-semibold leading-tight tracking-tight tabular-nums',
+          feature
+            ? accent === 'danger'
+              ? 'text-feature-negative'
+              : 'text-feature-accent'
+            : accent !== 'neutral' && a.text,
         )}
       >
         {value}
       </p>
-      {hint ? <p className="mt-1 text-xs text-content-muted">{hint}</p> : null}
+      {hint ? <p className={cn('mt-1 text-xs', muted)}>{hint}</p> : null}
       {children}
     </div>
   );

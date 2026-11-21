@@ -128,6 +128,7 @@ export function DashboardPage() {
           <motion.div variants={CARD_VARIANT} className="h-full">
             <StatCard
               label="Net worth"
+              feature
               value={netWorth == null ? '—' : <AnimatedMoney value={netWorth} />}
               accent={netWorth != null && netWorth < 0 ? 'danger' : 'brand'}
               icon="wallet"
