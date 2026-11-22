@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 
 import { LogoMark, Wordmark } from '@/shared/components/Logo';
+import { TestingBanner } from '@/shared/components/TestingBanner';
 
 import { LivePreview } from './LivePreview';
 import { ClosingCta, Faq, Features, Footer, HowItWorks, Pricing, Privacy } from './sections';
@@ -146,6 +147,7 @@ function Hero() {
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-bg text-content">
+      <TestingBanner />
       <TopBar />
       <main>
         <Hero />
