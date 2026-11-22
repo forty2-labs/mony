@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { injectSiteUrl, PLACEHOLDER_SITE_URL, resolveSiteUrl, robotsTxt, sitemapXml } from './seo';
+import {
+  injectSiteUrl,
+  PLACEHOLDER_SITE_URL,
+  resolveSiteUrl,
+  robotsTxt,
+  sitemapXml,
+  siteUrlFromEnv,
+} from './seo';
 
 describe('resolveSiteUrl', () => {
   it('uses the configured address without a trailing slash', () => {
@@ -22,6 +29,28 @@ describe('resolveSiteUrl', () => {
   it('rejects something that is not an http(s) address', () => {
     expect(() => resolveSiteUrl('mony.app')).toThrow(/SITE_URL/);
     expect(() => resolveSiteUrl('ftp://mony.app')).toThrow(/SITE_URL/);
+  });
+});
+
+describe('siteUrlFromEnv', () => {
+  it('prefers an explicit SITE_URL', () => {
+    expect(
+      siteUrlFromEnv({
+        SITE_URL: 'https://mony.app',
+        VERCEL_PROJECT_PRODUCTION_URL: 'x.vercel.app',
+      }),
+    ).toBe('https://mony.app');
+  });
+
+  it("falls back to Vercel's production domain, which Vercel sets without a scheme", () => {
+    expect(siteUrlFromEnv({ VERCEL_PROJECT_PRODUCTION_URL: 'mony-gray.vercel.app' })).toBe(
+      'https://mony-gray.vercel.app',
+    );
+  });
+
+  it('is undefined when neither is set, so the placeholder applies', () => {
+    expect(siteUrlFromEnv({})).toBeUndefined();
+    expect(siteUrlFromEnv({ SITE_URL: ' ', VERCEL_PROJECT_PRODUCTION_URL: '' })).toBeUndefined();
   });
 });
 

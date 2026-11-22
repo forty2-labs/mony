@@ -15,6 +15,18 @@ export const PLACEHOLDER_SITE_URL = 'https://mony.example';
 
 const TOKEN = /__SITE_URL__/g;
 
+/**
+ * The address to build with: SITE_URL if set, else the production domain
+ * Vercel exposes to builds (VERCEL_PROJECT_PRODUCTION_URL, no scheme), so
+ * Vercel deploys get working previews without extra config.
+ */
+export function siteUrlFromEnv(env: Record<string, string | undefined>): string | undefined {
+  const explicit = env.SITE_URL?.trim();
+  if (explicit) return explicit;
+  const vercel = env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  return vercel ? `https://${vercel}` : undefined;
+}
+
 export function resolveSiteUrl(raw: string | undefined): { url: string; placeholder: boolean } {
   const value = raw?.trim();
   if (!value) return { url: PLACEHOLDER_SITE_URL, placeholder: true };
