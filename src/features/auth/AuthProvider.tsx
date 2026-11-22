@@ -13,6 +13,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { resetVisits } from '@/shared/lib/firstVisit';
 import { supabase } from '@/shared/lib/supabase';
 
+import { type AuthLink, clearRecovery, isRecovering, rememberRecovery } from './authLink';
+
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
@@ -25,8 +27,10 @@ interface AuthContextValue {
     displayName?: string,
   ) => Promise<{ needsConfirmation: boolean }>;
   signInWithOtp: (email: string) => Promise<void>;
-  /** Email a password-reset link that lands on /reset-password. */
+  /** Email a password-reset link; it lands on /auth/confirm, then /reset-password. */
   sendPasswordReset: (email: string) => Promise<void>;
+  /** Sign in from an email link's one-time token (see authLink.ts). */
+  verifyEmailLink: (link: AuthLink) => Promise<void>;
   /** Set a new password for the signed-in (or recovering) user. */
   updatePassword: (password: string) => Promise<void>;
   /** True after arriving from a password-reset link, until the password is changed. */
@@ -34,8 +38,11 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
 }
 
-/** Where auth emails send people back to. Must be in the project's redirect allowlist. */
-const redirectTo = (path: string) => `${window.location.origin}${path}`;
+/**
+ * Where auth emails send people back to: the page that verifies the link's
+ * token. Must be in the project's redirect allowlist.
+ */
+const confirmUrl = () => `${window.location.origin}/auth/confirm`;
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -64,14 +71,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       setSession(data.session);
+      // A reload mid-reset must still require the new password (MON-9).
+      setPasswordRecovery(isRecovering(data.session?.user.id ?? null));
       setLoading(false);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
-      if (event === 'SIGNED_OUT') setPasswordRecovery(false);
+      if (event === 'PASSWORD_RECOVERY' && nextSession) {
+        rememberRecovery(nextSession.user.id);
+        setPasswordRecovery(true);
+      }
+      if (event === 'SIGNED_OUT') {
+        clearRecovery();
+        setPasswordRecovery(false);
+      }
       setSession(nextSession);
     });
 
@@ -97,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password,
           options: {
             data: displayName ? { display_name: displayName } : undefined,
-            emailRedirectTo: redirectTo('/'),
+            emailRedirectTo: confirmUrl(),
           },
         });
         if (error) throw error;
@@ -109,20 +124,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email,
           // Magic links sign in existing accounts only; sign-up goes through the
           // password flow so new users always see the onboarding notices.
-          options: { emailRedirectTo: redirectTo('/'), shouldCreateUser: false },
+          options: { emailRedirectTo: confirmUrl(), shouldCreateUser: false },
         });
         if (error) throw error;
       },
       async sendPasswordReset(email) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: redirectTo('/reset-password'),
+          redirectTo: confirmUrl(),
         });
         if (error) throw error;
       },
       async updatePassword(password) {
         const { error } = await supabase.auth.updateUser({ password });
         if (error) throw error;
+        clearRecovery();
         setPasswordRecovery(false);
+      },
+      async verifyEmailLink({ tokenHash, type }) {
+        // A recovery token fires PASSWORD_RECOVERY, which sets the reset gate above.
+        const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+        if (error) throw error;
       },
       async signOut() {
         const { error } = await supabase.auth.signOut();

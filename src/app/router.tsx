@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import { AuthConfirmPage } from '@/features/auth/AuthConfirmPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage';
@@ -51,6 +52,7 @@ function lazyPage(node: React.ReactNode) {
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/auth/confirm', element: <AuthConfirmPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
   {
     element: <ProtectedRoute />,

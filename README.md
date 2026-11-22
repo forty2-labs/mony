@@ -78,7 +78,9 @@ Migrations are never applied automatically.
 2. `npx supabase db push --remote` and `npx supabase functions deploy delete-account`.
 3. `npx supabase secrets set ALLOWED_ORIGINS=https://your-domain`.
 4. Mirror the `[auth]` settings from `supabase/config.toml` in the dashboard,
-   including the site URL and redirect allowlist. Also turn on leaked-password
+   including the site URL and redirect allowlist, and paste the email templates
+   from `supabase/templates/` into Authentication → Emails (magic link, reset
+   password, confirm sign-up) so email links open `/auth/confirm`. Also turn on leaked-password
    protection and CAPTCHA, and set up a real SMTP provider.
 5. Keep API **max rows** at 1,000 or more.
 6. Build with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `SITE_URL` (the public
