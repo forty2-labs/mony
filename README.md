@@ -134,13 +134,38 @@ docs/             Screenshots, design notes
 
 ## Roadmap
 
-| Phase | Scope                                                         | Status |
-| ----- | ------------------------------------------------------------- | ------ |
-| 1     | Audit and plan                                                | Done   |
-| 2     | Security and multi-user isolation                             | Done   |
-| 4     | Landing page and live preview                                 | Done   |
-| 3     | Loans, recurring transactions, import history, onboarding     | Next   |
-| 6     | Launch prep: CI, hosted auth, legal pages, security review    | Next   |
-| 5     | Payments: one-time lifetime purchase via Stripe, entitlements | Later  |
+mony is in its **testing phase**. Work is planned in stages and tracked in Linear.
 
-mony is in its testing phase.
+### Shipped
+
+- Multi-user security: forced row-level security, owner-scoped foreign keys and a cross-user attack
+  suite
+- Your data, your call: JSON export and full account deletion
+- Landing page with a live preview, link previews and the rising-y brand
+
+### Now: launch readiness
+
+- [x] CI and branch protection
+- [x] Email sign-in and reset links that work in any browser
+- [ ] Hosted sign-in hardening: real email provider, CAPTCHA, leaked-password check
+- [ ] One-click demo on the live site
+- [ ] Demo accounts can't change their email or password
+- [ ] Privacy policy, terms and cookie notice
+- [ ] Security review and security headers
+- [ ] Custom domain
+- [ ] Error reporting from the live site
+
+### Next: app improvements
+
+- [ ] Loans: money borrowed, interest and repayment history
+- [ ] Recurring transactions
+- [ ] Import history, duplicate detection and undo
+- [ ] Onboarding for new accounts
+- [ ] Accounts and cards on each transaction
+- [ ] Dashboard insights
+- [ ] Mobile polish
+
+### Later: payments
+
+- [ ] Billing records and entitlements, written only by the server
+- [ ] Lifetime access for a one-time $20, through Stripe
