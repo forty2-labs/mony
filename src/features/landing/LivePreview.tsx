@@ -27,6 +27,12 @@ const RANGES: { key: RangeKey; label: string }[] = [
 export function LivePreview() {
   const [key, setKey] = useState<RangeKey>('last_12_months');
   const report = useMemo(() => sampleReport({ key }), [key]);
+  // The sample year has no history before it, so an empty previous window would
+  // show the whole total as growth. Compare only when there is something to compare.
+  const prev =
+    report.prev && report.prev.totalIncome + report.prev.totalExpenses > 0
+      ? report.prev
+      : undefined;
 
   return (
     <div className="card p-4 shadow-soft-lg sm:p-5">
@@ -74,7 +80,7 @@ export function LivePreview() {
           accent="success"
           icon="income"
         >
-          <Delta current={report.totalIncome} previous={report.prev?.totalIncome} higherIsGood />
+          <Delta current={report.totalIncome} previous={prev?.totalIncome} higherIsGood />
         </StatCard>
         <StatCard
           label="Spending"
@@ -84,7 +90,7 @@ export function LivePreview() {
         >
           <Delta
             current={report.totalExpenses}
-            previous={report.prev?.totalExpenses}
+            previous={prev?.totalExpenses}
             higherIsGood={false}
           />
         </StatCard>

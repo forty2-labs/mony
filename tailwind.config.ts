@@ -29,6 +29,10 @@ export default {
         'feature-muted': 'rgb(var(--feature-muted) / <alpha-value>)',
         'feature-accent': 'rgb(var(--feature-accent) / <alpha-value>)',
         'feature-negative': 'rgb(var(--feature-negative) / <alpha-value>)',
+        // Brand constants (same in both themes): the logo tile, its ink and the lime.
+        'logo-tile': 'rgb(var(--logo-tile) / <alpha-value>)',
+        'logo-ink': 'rgb(var(--logo-ink) / <alpha-value>)',
+        'logo-accent': 'rgb(var(--logo-accent) / <alpha-value>)',
       },
       boxShadow: {
         soft: '0 1px 2px rgb(17 35 32 / 0.03), 0 8px 24px rgb(17 35 32 / 0.04)',

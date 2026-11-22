@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import { LogoMark } from '@/shared/components/Logo';
@@ -29,7 +29,12 @@ export function LoginPage() {
   const { session, signInWithPassword, signUpWithPassword, signInWithOtp, sendPasswordReset } =
     useAuth();
   const location = useLocation();
-  const [mode, setMode] = useState<Mode>('signin');
+  // `?mode=signup` (or otp / forgot) opens that form directly, e.g. from the landing page.
+  const [params] = useSearchParams();
+  const [mode, setMode] = useState<Mode>(() => {
+    const requested = params.get('mode');
+    return requested && requested in MODE_COPY ? (requested as Mode) : 'signin';
+  });
   const [banner, setBanner] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
 
   const {
