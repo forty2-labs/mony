@@ -1,110 +1,171 @@
+<div align="center">
+
+<img src="public/favicon.svg" width="72" alt="mony logo" />
+
 # mony
 
-**Your money. Your clarity.** A multi-user personal finance app: spending,
-income, budgets, loans and bank-statement import. React + Vite + TypeScript on
-Supabase (Postgres, Auth, Edge Functions). Each user's data is isolated by Row
-Level Security in the database, not the client.
+**Your money. Your clarity.**
 
-> **Status:** Phase 2 (security and multi-tenancy) complete. See [Roadmap](#roadmap).
+A personal finance app for the UK: spending, income, budgets, savings goals and money lent,
+from the CSV exports your bank already gives you.
 
-## Local development
+[![CI](https://github.com/forty2-labs/mony/actions/workflows/ci.yml/badge.svg)](https://github.com/forty2-labs/mony/actions/workflows/ci.yml)
+[Live site](https://mony-gray.vercel.app) · [Quick start](#quick-start) · [Security](#security)
 
-Requires Node 20+ and Docker.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-dark.jpg" />
+  <img src="docs/screenshots/dashboard-light.jpg" alt="The mony dashboard: net worth, income, expenses and a 12-month chart" />
+</picture>
+
+</div>
+
+## Features
+
+- **Dashboard:** net worth, income vs spending, monthly trends and a category-by-month table.
+- **Bank import:** CSV exports from Monzo, Revolut, Wise or any bank, with suggested categories and
+  transfer detection. Nothing is saved until you review it.
+- **Budgets, savings goals, loans and subscriptions** in one place.
+- **Any currency:** amounts convert to GBP at the rate on the day, frozen so history never shifts.
+- **Your data, your call:** export everything as JSON, or delete your account and every row with it.
+- **Light and dark themes**, and a public landing page with a live preview on sample data.
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/landing.jpg" alt="Landing page" /></td>
+    <td><img src="docs/screenshots/budgets.jpg" alt="Budgets page" /></td>
+    <td><img src="docs/screenshots/expenses.jpg" alt="Expenses page" /></td>
+  </tr>
+  <tr>
+    <td align="center">Landing page</td>
+    <td align="center">Budgets</td>
+    <td align="center">Expenses</td>
+  </tr>
+</table>
+
+**Built with** React, TypeScript, Vite, Tailwind CSS and TanStack Query, on Supabase (Postgres, Auth,
+Edge Functions).
+
+## Quick start
+
+You need Node 20+ and Docker.
 
 ```bash
 npm install
-npm run db:start                 # local Supabase stack (first run pulls images)
-cp .env.local.example .env.local # local defaults work as-is
+npm run db:start                 # local Supabase in Docker (first run pulls images)
+cp .env.local.example .env.local # the defaults work as-is
 npm run dev                      # http://localhost:5173
 ```
 
-Signed out, `/` shows the public landing page (its live preview runs on fictional
-sample data in the browser); signed in, `/` is the dashboard.
+Sign in with the demo account, **`demo@example.com` / `MonyDemo2026`**: a year of fictional data. In
+development the sign-in page has a one-click **Demo account** button.
 
-Auth emails go to Mailpit at <http://127.0.0.1:54324>; nothing is really sent.
-Studio is at <http://127.0.0.1:54323>. Stop with `npm run db:stop` (local data
-is kept).
+| Local tool | Address                  | What it's for                                    |
+| ---------- | ------------------------ | ------------------------------------------------ |
+| App        | <http://localhost:5173>  | Landing page when signed out, dashboard when in  |
+| Mailpit    | <http://127.0.0.1:54324> | Catches every auth email; nothing is really sent |
+| Studio     | <http://127.0.0.1:54323> | Browse the local database                        |
 
-A fresh database is seeded (`supabase/seed.sql`) with a demo account holding a
-year of fictional data: `demo@example.com` / `MonyDemo2026`. In dev builds the
-sign-in page has a **Demo account** button and a link to Mailpit. Seeds never
-reach a hosted project; `db push` only applies migrations. The demo account is
-flagged `app_metadata.demo`, and the `delete-account` function refuses to delete
-it.
+Stop with `npm run db:stop`; your local data is kept.
 
-| Command            | What it does                                     |
-| ------------------ | ------------------------------------------------ |
-| `npm run build`    | type-check + production build                    |
-| `npm run lint`     | ESLint (import ordering, unused imports)         |
-| `npm run format`   | Prettier                                         |
-| `npm test`         | unit tests (no database needed)                  |
-| `npm run test:db`  | pgTAP: forced RLS on every table, no anon access |
-| `npm run test:rls` | cross-user attack suite against the local API    |
-| `npm run test:all` | all of the above                                 |
-| `npm run db:reset` | wipe and rebuild the local database              |
+## Commands
 
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of these on every
-pull request to `main`, with the database suites against a throwaway local stack.
+| Command            | What it does                                         |
+| ------------------ | ---------------------------------------------------- |
+| `npm run build`    | Type-check and production build                      |
+| `npm run lint`     | ESLint (also sorts imports)                          |
+| `npm run format`   | Prettier                                             |
+| `npm test`         | Unit tests, no database needed                       |
+| `npm run test:db`  | pgTAP: row security on every table, no anonymous use |
+| `npm run test:rls` | Cross-user attack suite against the local API        |
+| `npm run test:all` | All of the above                                     |
+| `npm run db:reset` | Wipe and rebuild the local database                  |
+
+[CI](.github/workflows/ci.yml) runs all of these on every pull request, and `main` only accepts
+pull requests that pass.
+
+## Security
+
+Every user's data is isolated in the database itself, not by the app:
+
+- **Row Level Security on every table**, forced, with owner-only policies. The public key alone
+  grants nothing.
+- **No cross-user references:** foreign keys include the owner, because foreign-key checks skip RLS.
+- **Proven by tests:** `test:rls` has one real user attack another's rows with forged IDs, foreign
+  keys and RPCs.
+- **Privileged work stays on the server:** the service-role key is used only by the
+  `delete-account` Edge Function.
 
 ## Changing the schema
 
-Migrations are never applied automatically.
+Migrations never run automatically.
 
-1. Add the next numbered file, e.g. `supabase/migrations/0005_loans.sql`. Never
-   edit an applied migration; it won't re-run.
-2. Apply locally: `npx supabase migration up` (keeps data) or `npm run db:reset`
-   (replays everything from empty, the stronger check).
-3. Update the hand-maintained types in `src/shared/types/database.ts`.
-4. Follow the RLS pattern in `0003_security_hardening.sql`, add cases to
-   `tests/rls/` for new tables or RPCs, and run `npm run test:all`.
-5. At deploy time only: `npx supabase db push --remote`.
+1. Add the next numbered file in `supabase/migrations/`. Never edit one that has been applied.
+2. Apply it locally: `npx supabase migration up`, or `npm run db:reset` to replay everything.
+3. Update the hand-written types in `src/shared/types/database.ts`.
+4. Follow the RLS pattern in `0003_security_hardening.sql`, add cases to `tests/rls/`, and run
+   `npm run test:all`.
+5. When deploying: `npx supabase db push --remote`.
 
-## Security model
+## Deploying
 
-- **Database-level isolation:** forced RLS with owner-only policies on every
-  table; `anon` has no table privileges.
-- **No cross-user references:** composite `(user_id, x_id)` foreign keys, since
-  FK checks bypass RLS.
-- **Proven by tests:** `test:rls` has one real user attack another's rows with
-  forged IDs, foreign keys and RPCs.
-- **Server-side privilege only:** the service-role key is used solely by the
-  `delete-account` Edge Function.
-- **Data rights:** Settings → Export downloads everything as JSON; Delete
-  account cascades every row the user owns.
+1. Create a Supabase project (UK or EU region) and link it:
+   `npx supabase link --project-ref <ref>`.
+2. Push the schema and function: `npx supabase db push --remote`, then
+   `npx supabase functions deploy delete-account`.
+3. Allow your site to call the function: `npx supabase secrets set ALLOWED_ORIGINS=https://your-domain`.
+4. In the Supabase dashboard, mirror the `[auth]` settings from `supabase/config.toml`: site URL,
+   redirect allowlist, leaked-password protection, CAPTCHA and a real SMTP provider. Paste the
+   email templates from `supabase/templates/` into Authentication → Emails, so email links open
+   `/auth/confirm`. Keep API max rows at 1,000 or more.
+5. Build with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `SITE_URL`, the public address
+   used in link previews, `robots.txt` and the sitemap. On Vercel, `SITE_URL` defaults to the
+   production domain.
 
-## Deploying (hosted Supabase)
-
-1. Create a project (UK/EU region), then `npx supabase link --project-ref <ref>`.
-2. `npx supabase db push --remote` and `npx supabase functions deploy delete-account`.
-3. `npx supabase secrets set ALLOWED_ORIGINS=https://your-domain`.
-4. Mirror the `[auth]` settings from `supabase/config.toml` in the dashboard,
-   including the site URL and redirect allowlist, and paste the email templates
-   from `supabase/templates/` into Authentication → Emails (magic link, reset
-   password, confirm sign-up) so email links open `/auth/confirm`. Also turn on leaked-password
-   protection and CAPTCHA, and set up a real SMTP provider.
-5. Keep API **max rows** at 1,000 or more.
-6. Build with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `SITE_URL` (the public
-   address; it fills the link-preview tags, canonical URL, `robots.txt` and
-   `sitemap.xml`). On Vercel, `SITE_URL` defaults to the project's production
-   domain. The share image is `public/og-image.png`, a 1200×630 shot of the hero.
-
-## Layout
+## Project layout
 
 ```text
 src/app/          App shell, router, query client
-src/features/     One folder per domain (auth, dashboard, expenses, loans, …)
-src/shared/       Reusable UI, lib (env, supabase, fetchAll), types
-supabase/         migrations/, functions/, tests/ (pgTAP)
+src/features/     One folder per area: auth, dashboard, expenses, landing, loans, …
+src/shared/       Shared UI, helpers and types
+supabase/         Migrations, Edge Functions, email templates, pgTAP tests
 tests/rls/        Cross-user isolation tests
+docs/             Screenshots, design notes
 ```
 
 ## Roadmap
 
-| Phase | Scope                                                          | Status  |
-| ----- | -------------------------------------------------------------- | ------- |
-| 1     | Audit and plan                                                 | Done    |
-| 2     | Security and multi-tenancy                                     | Done    |
-| 3     | App improvements: loans, recurring, import history, onboarding | Next    |
-| 4     | Landing page and interactive demo                              | Planned |
-| 5     | Monetisation: Stripe, entitlements                             | Planned |
-| 6     | Launch prep: security review, legal, deployment                | Planned |
+mony is in its **testing phase**. Work is planned in stages and tracked in Linear.
+
+### Shipped
+
+- Multi-user security: forced row-level security, owner-scoped foreign keys and a cross-user attack
+  suite
+- Your data, your call: JSON export and full account deletion
+- Landing page with a live preview, link previews and the rising-y brand
+
+### Now: launch readiness
+
+- [x] CI and branch protection
+- [x] Email sign-in and reset links that work in any browser
+- [ ] Hosted sign-in hardening: real email provider, CAPTCHA, leaked-password check
+- [ ] One-click demo on the live site
+- [ ] Demo accounts can't change their email or password
+- [ ] Privacy policy, terms and cookie notice
+- [ ] Security review and security headers
+- [ ] Custom domain
+- [ ] Error reporting from the live site
+
+### Next: app improvements
+
+- [ ] Loans: money borrowed, interest and repayment history
+- [ ] Recurring transactions
+- [ ] Import history, duplicate detection and undo
+- [ ] Onboarding for new accounts
+- [ ] Accounts and cards on each transaction
+- [ ] Dashboard insights
+- [ ] Mobile polish
+
+### Later: payments
+
+- [ ] Billing records and entitlements, written only by the server
+- [ ] Lifetime access for a one-time $20, through Stripe
