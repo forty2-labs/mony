@@ -29,7 +29,11 @@ describe('buildReport', () => {
   });
 
   it('ranks categories and shares percentages', () => {
-    const r = buildReport(range, [row(100, '2026-02-01', 'Food'), row(300, '2026-02-02', 'Rent')], []);
+    const r = buildReport(
+      range,
+      [row(100, '2026-02-01', 'Food'), row(300, '2026-02-02', 'Rent')],
+      [],
+    );
     expect(r.expenseCategories[0]).toMatchObject({ name: 'Rent', pct: 75 });
     expect(r.expenseCategories[1].pct).toBe(25);
 
