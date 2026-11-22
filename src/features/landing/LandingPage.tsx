@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { LogoMark, Wordmark } from '@/shared/components/Logo';
 
 import { LivePreview } from './LivePreview';
+import { ClosingCta, Faq, Features, Footer, HowItWorks, Pricing, Privacy } from './sections';
 
 /** The wordmark's tail on the deep-green bar uses the bright lime, as in dark mode. */
 const ON_DARK = { '--logo-tail': 'var(--logo-accent)' } as CSSProperties;
@@ -103,7 +104,14 @@ export function LandingPage() {
         >
           <LivePreview />
         </section>
+        <HowItWorks />
+        <Features />
+        <Privacy />
+        <Pricing />
+        <Faq />
+        <ClosingCta />
       </main>
+      <Footer />
     </div>
   );
 }
