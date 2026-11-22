@@ -80,7 +80,8 @@ Migrations are never applied automatically.
 5. Keep API **max rows** at 1,000 or more.
 6. Build with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `SITE_URL` (the public
    address; it fills the link-preview tags, canonical URL, `robots.txt` and
-   `sitemap.xml`).
+   `sitemap.xml`). On Vercel, `SITE_URL` defaults to the project's production
+   domain. The share image is `public/og-image.png`, a 1200×630 shot of the hero.
 
 ## Layout
 
