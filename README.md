@@ -78,7 +78,9 @@ Migrations are never applied automatically.
    including the site URL and redirect allowlist. Also turn on leaked-password
    protection and CAPTCHA, and set up a real SMTP provider.
 5. Keep API **max rows** at 1,000 or more.
-6. Build with only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+6. Build with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `SITE_URL` (the public
+   address; it fills the link-preview tags, canonical URL, `robots.txt` and
+   `sitemap.xml`).
 
 ## Layout
 
