@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import { FullScreenLoader } from '@/shared/components/FullScreenLoader';
 
+import { failedAuthLink } from './authLink';
 import { useAuth } from './AuthProvider';
 
 // Only signed-out visitors at `/` load this chunk.
@@ -21,8 +22,16 @@ export function ProtectedRoute() {
   if (loading) return <FullScreenLoader label="Loading your account…" />;
 
   if (!session) {
-    // The home page is public: signed-out visitors get the landing page there.
     if (location.pathname === '/') {
+      // An email link that fell back to the site root still carries its token.
+      if (new URLSearchParams(location.search).has('token_hash')) {
+        return <Navigate to={`/auth/confirm${location.search}`} replace />;
+      }
+      // An expired, used or cross-browser link: say so instead of showing the landing page.
+      if (failedAuthLink(location.search, location.hash)) {
+        return <Navigate to="/login?mode=otp&link=expired" replace />;
+      }
+      // The home page is public: signed-out visitors get the landing page there.
       return (
         <Suspense fallback={<FullScreenLoader />}>
           <LandingPage />

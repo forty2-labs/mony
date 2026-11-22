@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -17,6 +17,9 @@ interface FormValues {
   displayName?: string;
 }
 
+/** Supabase lets each address request one email link per minute on hosted projects. */
+const RESEND_COOLDOWN_SECONDS = 60;
+
 const MODE_COPY: Record<Mode, { title: string; cta: string }> = {
   signin: { title: 'Welcome back', cta: 'Sign in' },
   signup: { title: 'Create your account', cta: 'Create account' },
@@ -31,7 +34,22 @@ export function LoginPage() {
   // `?mode=signup` (or otp / forgot) opens that form directly, e.g. from the landing page.
   const [params] = useSearchParams();
   const [mode, setMode] = useState<Mode>(() => loginModeFrom(params.get('mode')));
-  const [banner, setBanner] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
+  const [banner, setBanner] = useState<{ kind: 'error' | 'success'; text: string } | null>(() =>
+    // Sent here by a sign-in or reset link that didn't work (see ProtectedRoute).
+    params.get('link') === 'expired'
+      ? {
+          kind: 'error',
+          text: 'That link has expired or was already used. Request a new one below.',
+        }
+      : null,
+  );
+  // After an email link is sent, the button waits before allowing another.
+  const [cooldown, setCooldown] = useState(0);
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   const {
     register,
@@ -47,6 +65,7 @@ export function LoginPage() {
   const switchMode = (next: Mode) => {
     setMode(next);
     setBanner(null);
+    setCooldown(0);
   };
 
   const onSubmit = handleSubmit(async (values) => {
@@ -73,6 +92,7 @@ export function LoginPage() {
           kind: 'success',
           text: 'If an account exists for that email, a reset link is on its way.',
         });
+        setCooldown(RESEND_COOLDOWN_SECONDS);
       } else {
         // Unknown emails are rejected (magic links never create accounts); treat
         // that like success so the response doesn't reveal who has an account.
@@ -84,6 +104,7 @@ export function LoginPage() {
           kind: 'success',
           text: 'If an account exists for that email, a sign-in link is on its way.',
         });
+        setCooldown(RESEND_COOLDOWN_SECONDS);
       }
     } catch (err) {
       setBanner({
@@ -183,8 +204,12 @@ export function LoginPage() {
             </div>
           )}
 
-          <button type="submit" className="btn-primary w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Please wait…' : copy.cta}
+          <button
+            type="submit"
+            className="btn-primary w-full"
+            disabled={isSubmitting || cooldown > 0}
+          >
+            {isSubmitting ? 'Please wait…' : cooldown > 0 ? `Send again in ${cooldown}s` : copy.cta}
           </button>
         </form>
 

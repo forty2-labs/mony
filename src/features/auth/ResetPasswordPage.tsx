@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { FullScreenLoader } from '@/shared/components/FullScreenLoader';
 import { LogoMark } from '@/shared/components/Logo';
+import { useToast } from '@/shared/components/Toast';
 
 import { useAuth } from './AuthProvider';
 import { friendlyAuthError, PASSWORD_HINT, passwordProblem } from './password';
@@ -14,13 +15,14 @@ interface FormValues {
 }
 
 /**
- * Landing page for the password-reset email. The link signs the user in with a
- * short-lived recovery session (PKCE code exchange), which is what allows
+ * Where a password-reset link ends up, after /auth/confirm has verified it and
+ * signed the user in with a recovery session, which is what allows
  * `updateUser({ password })` here.
  */
 export function ResetPasswordPage() {
   const { session, loading, updatePassword } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [error, setError] = useState<string | null>(null);
   const {
     register,
@@ -35,6 +37,7 @@ export function ResetPasswordPage() {
     setError(null);
     try {
       await updatePassword(password);
+      toast.success('Password updated');
       navigate('/', { replace: true });
     } catch (e) {
       setError(friendlyAuthError(e));
@@ -52,10 +55,11 @@ export function ResetPasswordPage() {
         {!session ? (
           <div className="card space-y-4 p-6 text-sm">
             <p>
-              This reset link is invalid or has expired. Request a new one from the sign-in page.
+              To choose a new password, open the latest reset link from your email. Links work once
+              and expire after a short while.
             </p>
-            <Link to="/login" className="btn-primary w-full">
-              Back to sign in
+            <Link to="/login?mode=forgot" className="btn-primary w-full">
+              Email me a new reset link
             </Link>
           </div>
         ) : (

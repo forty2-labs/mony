@@ -252,6 +252,22 @@ otp_expiry = 900
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Email links go straight to the app's /auth/confirm page with a one-time token
+# hash, which the app verifies itself. Unlike the default links, they work in
+# any browser, not only the one that asked. The hosted project needs the same
+# templates (Dashboard → Authentication → Emails).
+[auth.email.template.magic_link]
+subject = "Your mony sign-in link"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.recovery]
+subject = "Reset your mony password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.confirmation]
+subject = "Confirm your mony account"
+content_path = "./supabase/templates/confirmation.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
