@@ -53,7 +53,12 @@ export interface TestUser {
 }
 
 /** Create a confirmed user via the admin API and return a signed-in client for them. */
-export async function createUser(stack: LocalStack, label: string): Promise<TestUser> {
+export async function createUser(
+  stack: LocalStack,
+  label: string,
+  /** Server-only claims (users can't change app_metadata), e.g. `{ demo: true }`. */
+  appMetadata?: Record<string, unknown>,
+): Promise<TestUser> {
   const email = `${label}-${randomUUID()}@example.test`;
   const password = `Pw-${randomUUID()}-Aa1`;
   const admin = adminClient(stack);
@@ -61,6 +66,7 @@ export async function createUser(stack: LocalStack, label: string): Promise<Test
     email,
     password,
     email_confirm: true,
+    app_metadata: appMetadata,
   });
   if (error || !data.user) throw error ?? new Error('createUser failed');
 

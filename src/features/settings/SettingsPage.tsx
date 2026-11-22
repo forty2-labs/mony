@@ -11,6 +11,7 @@ import { BASE_CURRENCY } from '@/shared/lib/env';
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
 import { deleteAccount, downloadBlob, exportAllData } from './accountData';
+import { isDemoAccount } from './demoAccount';
 
 const TIMEOUT_OPTIONS = [
   { value: 5, label: '5 minutes' },
@@ -51,6 +52,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export function SettingsPage() {
   const { user, signOut } = useAuth();
+  const demo = isDemoAccount(user);
   const toast = useToast();
   const profile = useProfile();
   const updateProfile = useUpdateProfile();
@@ -188,11 +190,16 @@ export function SettingsPage() {
             </Row>
             <Row
               title="Delete account"
-              description="Permanently delete your account and all of your data. This can’t be undone."
+              description={
+                demo
+                  ? 'This is the shared demo account, so it can’t be deleted. Create your own account to try this.'
+                  : 'Permanently delete your account and all of your data. This can’t be undone.'
+              }
             >
               <button
                 className="btn-ghost border border-danger/40 text-danger"
                 onClick={() => setDeleteOpen(true)}
+                disabled={demo}
               >
                 Delete account
               </button>
@@ -240,6 +247,7 @@ function DeleteAccountModal({
       const result = await deleteAccount(typed);
       if (result === 'reauthenticate') setNeedsReauth(true);
       else if (result === 'mismatch') toast.error('That email doesn’t match your account.');
+      else if (result === 'demo') toast.error('The demo account can’t be deleted.');
       else {
         // The server has already removed the user; clear the local session too.
         await signOut().catch(() => {});

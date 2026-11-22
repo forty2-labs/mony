@@ -28,7 +28,9 @@ is kept).
 A fresh database is seeded (`supabase/seed.sql`) with a demo account holding a
 year of fictional data: `demo@example.com` / `MonyDemo2026`. In dev builds the
 sign-in page has a **Demo account** button and a link to Mailpit. Seeds never
-reach a hosted project; `db push` only applies migrations.
+reach a hosted project; `db push` only applies migrations. The demo account is
+flagged `app_metadata.demo`, and the `delete-account` function refuses to delete
+it.
 
 | Command            | What it does                                     |
 | ------------------ | ------------------------------------------------ |
