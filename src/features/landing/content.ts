@@ -16,21 +16,24 @@ export function mailtoHref(subject: string): string {
  * live bank connections, no compliance badges, no invented numbers.
  */
 
-export const STEPS: { title: string; body: string; icon: IconName }[] = [
+/** Which illustration a step shows (see StepIllustrations.tsx). */
+export type StepScene = 'export' | 'review' | 'insight';
+
+export const STEPS: { title: string; body: string; scene: StepScene }[] = [
   {
     title: 'Export a CSV from your bank',
     body: 'Monzo, Revolut, Wise or any bank that lets you download your transactions. No bank login is ever shared with mony.',
-    icon: 'file',
+    scene: 'export',
   },
   {
     title: 'Import and review',
     body: 'mony recognises the format, suggests categories and flags transfers between your own accounts, so you check every row before anything is saved.',
-    icon: 'import',
+    scene: 'review',
   },
   {
     title: 'See where it goes',
     body: 'Trends, categories by month, budgets and what you have left. The same view this page is showing you, with your own numbers.',
-    icon: 'dashboard',
+    scene: 'insight',
   },
 ];
 

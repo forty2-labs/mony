@@ -6,8 +6,18 @@ import { LogoMark, Wordmark } from '@/shared/components/Logo';
 import { cn } from '@/shared/lib/cn';
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
-import { CONTACT_EMAIL, FAQ, FEATURES, PRICING, type PricingTier, PRIVACY, STEPS } from './content';
+import {
+  CONTACT_EMAIL,
+  FAQ,
+  FEATURES,
+  PRICING,
+  type PricingTier,
+  PRIVACY,
+  STEPS,
+  type StepScene,
+} from './content';
 import { copyText } from './copyText';
+import { ExportIllustration, InsightIllustration, ReviewIllustration } from './StepIllustrations';
 
 /** On the deep-green bands the wordmark tail uses the bright lime. */
 const ON_DARK = { '--logo-tail': 'var(--logo-accent)' } as CSSProperties;
@@ -62,24 +72,31 @@ function CtaLink({
   );
 }
 
+const SCENES: Record<StepScene, () => JSX.Element> = {
+  export: ExportIllustration,
+  review: ReviewIllustration,
+  insight: InsightIllustration,
+};
+
 export function HowItWorks() {
   return (
     <Section eyebrow="How it works" title="From bank export to a clear picture in three steps.">
       <ol className="grid gap-4 md:grid-cols-3">
-        {STEPS.map((s, i) => (
-          <li key={s.title} className="card relative p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <span className="icon-badge h-11 w-11">
-                <Icon name={s.icon} size={20} />
-              </span>
-              <span className="text-5xl font-semibold leading-none tracking-tight text-content/10 tabular-nums">
-                {i + 1}
-              </span>
-            </div>
-            <h3 className="text-lg font-semibold tracking-tight">{s.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-content-muted">{s.body}</p>
-          </li>
-        ))}
+        {STEPS.map((s, i) => {
+          const Scene = SCENES[s.scene];
+          return (
+            <li key={s.title} className="card flex flex-col p-4 sm:p-5">
+              <Scene />
+              <div className="px-1 pb-1">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-content-muted">
+                  Step {i + 1}
+                </p>
+                <h3 className="text-lg font-semibold tracking-tight">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-content-muted">{s.body}</p>
+              </div>
+            </li>
+          );
+        })}
       </ol>
     </Section>
   );
