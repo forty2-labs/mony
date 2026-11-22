@@ -23,12 +23,12 @@ export const STEPS: { title: string; body: string; scene: StepScene }[] = [
   },
   {
     title: 'Import and review',
-    body: 'mony recognises the format, suggests categories and flags transfers between your own accounts, so you check every row before anything is saved.',
+    body: 'mony recognises the format, suggests categories and flags transfers between your own accounts.',
     scene: 'review',
   },
   {
     title: 'See where it goes',
-    body: 'Trends, categories by month, budgets and what you have left. The same view this page is showing you, with your own numbers.',
+    body: 'Trends, categories by month, budgets and what you have left.',
     scene: 'insight',
   },
 ];
