@@ -18,6 +18,9 @@ cp .env.local.example .env.local # local defaults work as-is
 npm run dev                      # http://localhost:5173
 ```
 
+Signed out, `/` shows the public landing page (its live preview runs on fictional
+sample data in the browser); signed in, `/` is the dashboard.
+
 Auth emails go to Mailpit at <http://127.0.0.1:54324>; nothing is really sent.
 Studio is at <http://127.0.0.1:54323>. Stop with `npm run db:stop` (local data
 is kept).
@@ -25,7 +28,9 @@ is kept).
 A fresh database is seeded (`supabase/seed.sql`) with a demo account holding a
 year of fictional data: `demo@example.com` / `MonyDemo2026`. In dev builds the
 sign-in page has a **Demo account** button and a link to Mailpit. Seeds never
-reach a hosted project; `db push` only applies migrations.
+reach a hosted project; `db push` only applies migrations. The demo account is
+flagged `app_metadata.demo`, and the `delete-account` function refuses to delete
+it.
 
 | Command            | What it does                                     |
 | ------------------ | ------------------------------------------------ |
@@ -73,7 +78,9 @@ Migrations are never applied automatically.
    including the site URL and redirect allowlist. Also turn on leaked-password
    protection and CAPTCHA, and set up a real SMTP provider.
 5. Keep API **max rows** at 1,000 or more.
-6. Build with only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+6. Build with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `SITE_URL` (the public
+   address; it fills the link-preview tags, canonical URL, `robots.txt` and
+   `sitemap.xml`).
 
 ## Layout
 

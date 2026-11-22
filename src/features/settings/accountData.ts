@@ -52,7 +52,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export type DeleteAccountResult = 'deleted' | 'reauthenticate' | 'mismatch';
+export type DeleteAccountResult = 'deleted' | 'reauthenticate' | 'mismatch' | 'demo';
 
 /**
  * Ask the server to permanently delete this account and all of its data. The
@@ -69,6 +69,7 @@ export async function deleteAccount(confirmEmail: string): Promise<DeleteAccount
     const body = res ? ((await res.json().catch(() => null)) as { error?: string } | null) : null;
     if (body?.error === 'reauthentication_required') return 'reauthenticate';
     if (body?.error === 'confirmation_mismatch') return 'mismatch';
+    if (body?.error === 'demo_account') return 'demo';
     throw new Error('We couldn’t delete your account. Please try again.');
   }
   if (!data?.deleted) throw new Error('We couldn’t delete your account. Please try again.');

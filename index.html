@@ -2,21 +2,76 @@
 <html lang="en" class="h-full">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mony: personal finance, simplified</title>
+    <meta
+      name="description"
+      content="Track spending, income, budgets, savings goals and money you’ve lent, in one calm place. Import the CSV your bank already gives you. Free while in testing."
+    />
+    <meta name="theme-color" content="#1B3530" />
+    <meta name="robots" content="index, follow" />
+    <!-- __SITE_URL__ is filled in at build time from SITE_URL (scripts/seo.ts). -->
+    <link rel="canonical" href="__SITE_URL__/" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- Link previews: Open Graph (Slack, WhatsApp, LinkedIn, Facebook, iMessage) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="mony" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:url" content="__SITE_URL__/" />
+    <meta property="og:title" content="mony: your money, your clarity" />
+    <meta
+      property="og:description"
+      content="Spending, income, budgets and savings goals in one calm place. Import your bank’s CSV and see where it all goes. Free while in testing."
+    />
+    <meta property="og:image" content="__SITE_URL__/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="mony: Your money. Your clarity. A personal finance dashboard with a rising savings line."
+    />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="mony: your money, your clarity" />
+    <meta
+      name="twitter:description"
+      content="Spending, income, budgets and savings goals in one calm place. Free while in testing."
+    />
+    <meta name="twitter:image" content="__SITE_URL__/og-image.png" />
+    <meta
+      name="twitter:image:alt"
+      content="mony: Your money. Your clarity. A personal finance dashboard with a rising savings line."
+    />
+
+    <!-- Structured data for search engines -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "mony",
+        "url": "__SITE_URL__/",
+        "image": "__SITE_URL__/og-image.png",
+        "description": "Personal finance for the UK: spending, income, budgets, savings goals and money you’ve lent, from your bank’s CSV exports.",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "offers": [
+          { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
+          { "@type": "Offer", "name": "Lifetime", "price": "20", "priceCurrency": "USD" }
+        ]
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1B3530" />
-    <meta
-      name="description"
-      content="Track spending, manage budgets and understand your money — mony."
-    />
-    <title>mony — personal finance, simplified</title>
     <script>
       // Apply persisted theme before paint to avoid a flash of incorrect theme.
       (function () {

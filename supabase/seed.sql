@@ -36,7 +36,9 @@ begin
   ) values (
     '00000000-0000-0000-0000-000000000000', uid, 'authenticated', 'authenticated',
     'demo@example.com', extensions.crypt('MonyDemo2026', extensions.gen_salt('bf')), now(),
-    '{"provider":"email","providers":["email"]}', '{"display_name":"Alex"}',
+    -- app_metadata.demo marks the shared demo account; only the server can set it,
+    -- and the delete-account function refuses accounts that carry it.
+    '{"provider":"email","providers":["email"],"demo":true}', '{"display_name":"Alex"}',
     now() - interval '1 year', now(), now(),
     '', '', '', '', '', ''
   );

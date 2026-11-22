@@ -30,12 +30,14 @@ const OWNED_TABLES = [
 let stack: LocalStack;
 let victim: TestUser;
 let bystander: TestUser;
+let demo: TestUser;
 
 beforeAll(async () => {
   stack = localStack();
   victim = await createUser(stack, 'leaving');
   bystander = await createUser(stack, 'staying');
-  for (const user of [victim, bystander]) {
+  demo = await createUser(stack, 'demo', { demo: true });
+  for (const user of [victim, bystander, demo]) {
     await user.client.from('expenses').insert({ ...money(), occurred_on: '2026-03-01' });
     await user.client.from('savings_goals').insert({ name: 'Goal', target_amount_base: 50 });
   }
@@ -44,6 +46,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await deleteUser(stack, victim.id).catch(() => {});
   await deleteUser(stack, bystander.id).catch(() => {});
+  await deleteUser(stack, demo.id).catch(() => {});
 });
 
 const invoke = (user: TestUser | null, body: Record<string, unknown>) =>
@@ -86,6 +89,25 @@ describe('delete-account', () => {
     expect(body.error).toBe('confirmation_mismatch');
     expect(await rowCount(victim.id)).toBeGreaterThan(0);
     expect(await rowCount(bystander.id)).toBeGreaterThan(0);
+  });
+
+  it('refuses to delete the demo account, even with the right confirmation', async () => {
+    const before = await rowCount(demo.id);
+    const { status, body } = await statusOf(await invoke(demo, { confirmEmail: demo.email }));
+    expect(status).toBe(403);
+    expect(body.error).toBe('demo_account');
+    const { data } = await adminClient(stack).auth.admin.getUserById(demo.id);
+    expect(data.user).not.toBeNull();
+    expect(await rowCount(demo.id)).toBe(before);
+  });
+
+  it('does not let the demo account remove its own demo flag', async () => {
+    // updateUser can only touch user_metadata; app_metadata is server-owned.
+    await demo.client.auth.updateUser({ data: { demo: false } });
+    const { data } = await adminClient(stack).auth.admin.getUserById(demo.id);
+    expect(data.user?.app_metadata.demo).toBe(true);
+    const { status } = await statusOf(await invoke(demo, { confirmEmail: demo.email }));
+    expect(status).toBe(403);
   });
 
   it('deletes the caller and every row they owned, and nobody else', async () => {

@@ -10,6 +10,7 @@
 //   * The caller is identified from their JWT only; the body can't name a user.
 //   * The body must repeat the account's email (typed confirmation).
 //   * The sign-in must be recent, so a stale or stolen session alone can't do it.
+//   * The demo account (app_metadata.demo) can never be deleted.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const RECENT_SIGN_IN_MS = 30 * 60_000;
@@ -57,6 +58,10 @@ Deno.serve(async (req) => {
   const { data: userData, error: userError } = await userClient.auth.getUser();
   const user = userData?.user;
   if (userError || !user) return json(req, 401, { error: 'unauthorized' });
+
+  // The shared demo account must survive whoever is signed in to it. The flag
+  // lives in app_metadata, which only the server can set (see supabase/seed.sql).
+  if (user.app_metadata?.demo === true) return json(req, 403, { error: 'demo_account' });
 
   let confirmEmail = '';
   try {

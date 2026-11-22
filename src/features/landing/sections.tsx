@@ -1,0 +1,401 @@
+import { type CSSProperties, type ReactNode, useId, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+
+import { Icon } from '@/shared/components/Icon';
+import { LogoMark, Wordmark } from '@/shared/components/Logo';
+import { cn } from '@/shared/lib/cn';
+import { ThemeToggle } from '@/shared/theme/ThemeToggle';
+
+import {
+  CONTACT_URL,
+  FAQ,
+  FEATURES,
+  PRICING,
+  type PricingTier,
+  PRIVACY,
+  STEPS,
+  type StepScene,
+} from './content';
+import { EASE, useReveal } from './reveal';
+import {
+  ExportIllustration,
+  FlowArrow,
+  InsightIllustration,
+  ReviewIllustration,
+} from './StepIllustrations';
+
+/** On the deep-green bands the wordmark tail uses the bright lime. */
+const ON_DARK = { '--logo-tail': 'var(--logo-accent)' } as CSSProperties;
+
+function Section({
+  id,
+  eyebrow,
+  title,
+  intro,
+  children,
+}: {
+  id?: string;
+  eyebrow: string;
+  title: string;
+  intro?: string;
+  children: ReactNode;
+}) {
+  const reveal = useReveal();
+  return (
+    <section id={id} className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6 sm:py-28">
+      <motion.div {...reveal(0, { amount: 0.6 })} className="mb-12 max-w-2xl">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-content-muted">
+          {eyebrow}
+        </p>
+        <h2 className="text-balance text-[clamp(2rem,4vw,3rem)] font-semibold leading-[1.05] tracking-[-0.03em]">
+          {title}
+        </h2>
+        {intro ? <p className="mt-4 text-lg leading-relaxed text-content-muted">{intro}</p> : null}
+      </motion.div>
+      {children}
+    </section>
+  );
+}
+
+/** An internal route renders as a router link; an external link opens in a new tab. */
+function CtaLink({
+  href,
+  className,
+  children,
+}: {
+  href: string;
+  className: string;
+  children: ReactNode;
+}) {
+  return href.startsWith('/') ? (
+    <Link to={href} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      {children}
+    </a>
+  );
+}
+
+const SCENES: Record<StepScene, () => JSX.Element> = {
+  export: ExportIllustration,
+  review: ReviewIllustration,
+  insight: InsightIllustration,
+};
+
+export function HowItWorks() {
+  return (
+    <Section eyebrow="How it works" title="From bank export to a clear picture in three steps.">
+      {/* A flow, not a row of cards: the middle step sits lower on wide screens
+          and hand-drawn arrows lead from one step to the next. */}
+      <ol className="grid gap-y-2 md:grid-cols-3 md:gap-x-16 lg:gap-x-24">
+        {STEPS.map((s, i) => {
+          const Scene = SCENES[s.scene];
+          const last = i === STEPS.length - 1;
+          return (
+            <li key={s.title} className={cn('relative', i === 1 && 'md:mt-28')}>
+              <Scene />
+              <div className="flex gap-4">
+                <span className="icon-badge h-9 w-9 text-sm font-semibold tabular-nums">
+                  {i + 1}
+                </span>
+                <div>
+                  <h3 className="text-lg font-semibold tracking-tight">{s.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-content-muted">{s.body}</p>
+                </div>
+              </div>
+              {last ? null : (
+                <>
+                  <FlowArrow
+                    kind={i === 0 ? 'down' : 'up'}
+                    className={cn(
+                      'absolute left-full hidden h-[110px] w-16 md:block lg:w-24',
+                      i === 0 ? 'top-28' : '-top-6',
+                    )}
+                  />
+                  <FlowArrow kind="stack" className="mx-auto mt-4 h-[72px] w-12 md:hidden" />
+                </>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </Section>
+  );
+}
+
+export function Features() {
+  const reveal = useReveal();
+  return (
+    <Section
+      id="features"
+      eyebrow="Features"
+      title="Everything your money touches, in one calm place."
+      intro="Built for everyday personal finance in pounds, with room for the other currencies life brings."
+    >
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {FEATURES.map((f, i) => (
+          <motion.div key={f.title} {...reveal(i, { from: { y: 24 } })} className="card p-6">
+            <span className="icon-badge mb-5 h-11 w-11">
+              <Icon name={f.icon} size={20} />
+            </span>
+            <h3 className="text-lg font-semibold tracking-tight">{f.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-content-muted">{f.body}</p>
+          </motion.div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+export function Privacy() {
+  const reveal = useReveal();
+  return (
+    <Section
+      eyebrow="Privacy"
+      title="Your numbers stay yours."
+      intro="No bank logins, and nothing you can’t take with you."
+    >
+      <ul className="grid gap-4 md:grid-cols-3">
+        {PRIVACY.map((p, i) => (
+          <motion.li
+            key={p}
+            {...reveal(i, { from: { x: -24 }, step: 0.12 })}
+            className="flex gap-4 rounded-3xl border border-border p-6"
+          >
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-success/15 text-success">
+              <Icon name="check" size={16} />
+            </span>
+            <p className="text-sm leading-relaxed">{p}</p>
+          </motion.li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
+function PriceCard({ tier, index }: { tier: PricingTier; index: number }) {
+  const hi = tier.highlight;
+  const reveal = useReveal();
+  return (
+    <motion.div
+      // The highlighted plan arrives last and grows in slightly, to draw the eye.
+      {...reveal(hi ? 3 : index, { from: hi ? { y: 32, scale: 0.96 } : { y: 32 }, step: 0.1 })}
+      className={cn('flex flex-col p-7', hi ? 'card-feature' : 'card')}
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">{tier.name}</h3>
+        {hi ? (
+          <span className="rounded-full bg-feature-fg/10 px-3 py-1 text-xs font-medium text-feature-accent">
+            Best value
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-6 flex items-baseline gap-2">
+        <span
+          className={cn(
+            'text-5xl font-semibold tracking-[-0.04em] tabular-nums',
+            hi && 'text-feature-accent',
+          )}
+        >
+          {tier.price}
+        </span>
+        {tier.cadence ? (
+          <span className={cn('text-sm', hi ? 'text-feature-muted' : 'text-content-muted')}>
+            {tier.cadence}
+          </span>
+        ) : null}
+      </p>
+      <p className={cn('mt-2 text-sm', hi ? 'text-feature-muted' : 'text-content-muted')}>
+        {tier.note}
+      </p>
+      <ul className="mb-8 mt-6 space-y-3 text-sm">
+        {tier.points.map((p) => (
+          <li key={p} className="flex items-start gap-3">
+            <Icon
+              name="check"
+              size={16}
+              className={cn('mt-0.5 shrink-0', hi ? 'text-feature-accent' : 'text-success')}
+            />
+            {p}
+          </li>
+        ))}
+      </ul>
+      <CtaLink
+        href={tier.href}
+        className={cn(
+          'btn mt-auto w-full py-3',
+          hi
+            ? 'bg-feature-accent text-feature hover:brightness-105'
+            : 'border border-border bg-surface text-content hover:bg-surface-2',
+        )}
+      >
+        {tier.cta}
+      </CtaLink>
+    </motion.div>
+  );
+}
+
+function ContactLine() {
+  const reveal = useReveal();
+  return (
+    <motion.p
+      {...reveal(4, { step: 0.1 })}
+      className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-content-muted"
+    >
+      Questions first?
+      <a
+        href={CONTACT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 font-medium text-content underline decoration-border underline-offset-4 transition hover:decoration-content"
+      >
+        Message us on Upwork
+        <Icon name="send" size={13} />
+      </a>
+    </motion.p>
+  );
+}
+
+export function Pricing() {
+  return (
+    <Section
+      id="pricing"
+      eyebrow="Pricing"
+      title="Free to try. Yours for life for $20."
+      intro="No subscription to remember. Use everything free while mony is in testing, keep it for good with one payment, or have your own copy set up."
+    >
+      <div className="grid gap-4 lg:grid-cols-3">
+        {PRICING.map((t, i) => (
+          <PriceCard key={t.name} tier={t} index={i} />
+        ))}
+      </div>
+      <ContactLine />
+    </Section>
+  );
+}
+
+function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
+  const [open, setOpen] = useState(false);
+  const reduce = useReducedMotion();
+  const reveal = useReveal();
+  const panelId = useId();
+  return (
+    <motion.div {...reveal(index, { from: { y: 12 }, step: 0.06 })} className="px-6">
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((o) => !o)}
+          className="flex w-full items-center justify-between gap-4 py-5 text-left text-base font-medium"
+        >
+          {q}
+          <motion.span
+            animate={{ rotate: open ? 180 : 0 }}
+            transition={{ duration: reduce ? 0 : 0.3, ease: EASE }}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-2 text-content-muted"
+          >
+            <Icon name="chevron-down" size={16} />
+          </motion.span>
+        </button>
+      </h3>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            id={panelId}
+            role="region"
+            key="panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.35, ease: EASE }}
+            className="overflow-hidden"
+          >
+            <p className="max-w-3xl pb-5 text-sm leading-relaxed text-content-muted">{a}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+export function Faq() {
+  return (
+    <Section id="faq" eyebrow="FAQ" title="Questions, answered plainly.">
+      <div className="divide-y divide-border rounded-3xl border border-border bg-surface">
+        {FAQ.map((f, i) => (
+          <FaqItem key={f.q} q={f.q} a={f.a} index={i} />
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+export function ClosingCta() {
+  return (
+    <section className="px-4 pb-20 sm:px-6">
+      <div
+        style={ON_DARK}
+        className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-8 rounded-[2rem] bg-logo-tile px-8 py-14 text-logo-ink sm:px-12 md:flex-row md:items-center"
+      >
+        <div>
+          <h2 className="text-balance text-[clamp(2rem,4vw,3rem)] font-semibold leading-[1.05] tracking-[-0.03em]">
+            See your money <span className="text-logo-accent">clearly</span>.
+          </h2>
+          <p className="mt-3 text-logo-ink/70">Free while in testing. No card, no bank login.</p>
+        </div>
+        <Link
+          to="/login?mode=signup"
+          className="btn shrink-0 bg-logo-accent px-7 py-3 text-base text-logo-tile hover:brightness-105"
+        >
+          Start free
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+export function Footer() {
+  return (
+    <footer className="border-t border-border">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-2.5">
+          <LogoMark size={28} />
+          <Wordmark className="text-lg" />
+        </div>
+        <nav
+          aria-label="Footer"
+          className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-content-muted"
+        >
+          <a href="#features" className="hover:text-content">
+            Features
+          </a>
+          <a href="#pricing" className="hover:text-content">
+            Pricing
+          </a>
+          <a href="#faq" className="hover:text-content">
+            FAQ
+          </a>
+          <Link to="/login" className="hover:text-content">
+            Sign in
+          </Link>
+        </nav>
+        <ThemeToggle />
+      </div>
+      <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-4 pb-10 text-xs text-content-muted sm:px-6">
+        <span>© {new Date().getFullYear()} mony</span>
+        <a
+          href={CONTACT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-content"
+        >
+          Contact us on Upwork
+        </a>
+      </div>
+    </footer>
+  );
+}
