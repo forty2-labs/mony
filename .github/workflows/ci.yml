@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A new push to the same branch cancels the run it replaces.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, types and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  database:
+    name: Database security (pgTAP + cross-user attacks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Local stack only: the isolation tests refuse any non-loopback URL, so no
+      # secrets are needed. Services the tests don't use are skipped to save time.
+      - name: Start local Supabase
+        run: npx supabase start -x studio,imgproxy,vector,logflare,supavisor,realtime,storage-api,postgres-meta
+      - run: npm run test:db
+      - run: npm run test:rls
+      - name: Stop local Supabase
+        if: always()
+        run: npx supabase stop --no-backup

@@ -43,6 +43,9 @@ it.
 | `npm run test:all` | all of the above                                 |
 | `npm run db:reset` | wipe and rebuild the local database              |
 
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of these on every
+pull request to `main`, with the database suites against a throwaway local stack.
+
 ## Changing the schema
 
 Migrations are never applied automatically.
