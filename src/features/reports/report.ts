@@ -102,8 +102,8 @@ function daysBetween(from: string, to: string): number {
   return Math.round((parse(to).getTime() - parse(from).getTime()) / 86_400_000);
 }
 
-/** Resolve a selection into concrete date bounds (+ a comparison window). */
-export function resolveRange(selection: RangeSelection): ResolvedRange {
+/** Resolve a selection into concrete date bounds (+ a comparison window), relative to `now`. */
+export function resolveRange(selection: RangeSelection, now: Date = new Date()): ResolvedRange {
   if (selection.key === 'custom') {
     const { from, to } = selection;
     const prevTo = addDays(from, -1);
@@ -117,7 +117,6 @@ export function resolveRange(selection: RangeSelection): ResolvedRange {
   }
 
   const { key } = selection;
-  const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
   const today = iso(now);
