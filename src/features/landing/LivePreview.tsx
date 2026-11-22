@@ -14,7 +14,7 @@ const TrendAreaChart = lazy(() =>
 );
 
 const RANGES: { key: RangeKey; label: string }[] = [
-  { key: 'this_month', label: 'This month' },
+  { key: 'last_month', label: 'Last month' },
   { key: 'last_3_months', label: '3 months' },
   { key: 'last_12_months', label: '12 months' },
 ];
@@ -63,7 +63,7 @@ export function LivePreview() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           feature
           label="Net saved"

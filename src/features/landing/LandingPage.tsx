@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 
 import { LogoMark, Wordmark } from '@/shared/components/Logo';
 
@@ -56,9 +57,60 @@ function TopBar() {
   );
 }
 
+/**
+ * The logo's rising tail, writ large: a lime line that climbs across the hero
+ * and draws itself in once on load (static when the visitor prefers reduced
+ * motion). Purely decorative.
+ */
+function RisingLine() {
+  const reduce = useReducedMotion();
+  const draw = reduce
+    ? { initial: false as const }
+    : {
+        initial: { pathLength: 0, opacity: 0 },
+        animate: { pathLength: 1, opacity: 1 },
+        transition: { duration: 1.6, ease: [0.16, 1, 0.3, 1] as const, delay: 0.2 },
+      };
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 600 420"
+      fill="none"
+      className="pointer-events-none absolute -right-10 top-10 hidden h-[420px] w-[56%] lg:block"
+    >
+      <motion.path
+        d="M20 380 C 150 380 190 300 270 280 S 420 230 470 150 S 540 60 590 40"
+        stroke="rgb(var(--logo-ink))"
+        strokeOpacity={0.08}
+        strokeWidth={2}
+        strokeDasharray="4 10"
+        {...draw}
+      />
+      <motion.path
+        d="M20 400 C 170 400 210 320 300 290 S 450 220 500 140 S 560 50 590 30"
+        stroke="rgb(var(--logo-accent))"
+        strokeWidth={10}
+        strokeLinecap="round"
+        {...draw}
+      />
+      <motion.circle
+        cx={590}
+        cy={30}
+        r={14}
+        fill="rgb(var(--logo-accent))"
+        initial={reduce ? false : { scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: reduce ? 0 : 1.5, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        style={{ transformOrigin: '590px 30px' }}
+      />
+    </svg>
+  );
+}
+
 function Hero() {
   return (
     <section style={ON_DARK} className="relative overflow-hidden bg-logo-tile text-logo-ink">
+      <RisingLine />
       <div className="mx-auto max-w-6xl px-4 pb-48 pt-16 sm:px-6 sm:pt-24 lg:pb-56">
         <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-logo-ink/15 px-3 py-1 text-xs font-medium text-logo-ink/80">
           Personal finance for the UK · free while in testing

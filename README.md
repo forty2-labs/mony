@@ -18,6 +18,9 @@ cp .env.local.example .env.local # local defaults work as-is
 npm run dev                      # http://localhost:5173
 ```
 
+Signed out, `/` shows the public landing page (its live preview runs on fictional
+sample data in the browser); signed in, `/` is the dashboard.
+
 Auth emails go to Mailpit at <http://127.0.0.1:54324>; nothing is really sent.
 Studio is at <http://127.0.0.1:54323>. Stop with `npm run db:stop` (local data
 is kept).
