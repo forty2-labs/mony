@@ -17,7 +17,12 @@ import {
   type StepScene,
 } from './content';
 import { copyText } from './copyText';
-import { ExportIllustration, InsightIllustration, ReviewIllustration } from './StepIllustrations';
+import {
+  ExportIllustration,
+  FlowArrow,
+  InsightIllustration,
+  ReviewIllustration,
+} from './StepIllustrations';
 
 /** On the deep-green bands the wordmark tail uses the bright lime. */
 const ON_DARK = { '--logo-tail': 'var(--logo-accent)' } as CSSProperties;
@@ -81,19 +86,36 @@ const SCENES: Record<StepScene, () => JSX.Element> = {
 export function HowItWorks() {
   return (
     <Section eyebrow="How it works" title="From bank export to a clear picture in three steps.">
-      <ol className="grid gap-4 md:grid-cols-3">
+      {/* A flow, not a row of cards: the middle step sits lower on wide screens
+          and hand-drawn arrows lead from one step to the next. */}
+      <ol className="grid gap-y-2 md:grid-cols-3 md:gap-x-16 lg:gap-x-24">
         {STEPS.map((s, i) => {
           const Scene = SCENES[s.scene];
+          const last = i === STEPS.length - 1;
           return (
-            <li key={s.title} className="card flex flex-col p-4 sm:p-5">
+            <li key={s.title} className={cn('relative', i === 1 && 'md:mt-28')}>
               <Scene />
-              <div className="px-1 pb-1">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-content-muted">
-                  Step {i + 1}
-                </p>
-                <h3 className="text-lg font-semibold tracking-tight">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-content-muted">{s.body}</p>
+              <div className="flex gap-4">
+                <span className="icon-badge h-9 w-9 text-sm font-semibold tabular-nums">
+                  {i + 1}
+                </span>
+                <div>
+                  <h3 className="text-lg font-semibold tracking-tight">{s.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-content-muted">{s.body}</p>
+                </div>
               </div>
+              {last ? null : (
+                <>
+                  <FlowArrow
+                    kind={i === 0 ? 'down' : 'up'}
+                    className={cn(
+                      'absolute left-full hidden h-[110px] w-16 md:block lg:w-24',
+                      i === 0 ? 'top-28' : '-top-6',
+                    )}
+                  />
+                  <FlowArrow kind="stack" className="mx-auto mt-4 h-[72px] w-12 md:hidden" />
+                </>
+              )}
             </li>
           );
         })}

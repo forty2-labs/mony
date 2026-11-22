@@ -168,20 +168,22 @@ export function ReviewIllustration() {
           </motion.div>
         ))}
       </div>
-      <motion.div
-        {...reveal(5, { y: 10 })}
-        className="absolute bottom-3.5 right-4 inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-[10.5px] font-medium text-brand-fg shadow-soft"
-      >
-        <Icon name="import" size={12} />
-        Import 3 rows
-      </motion.div>
-      <motion.span
-        {...reveal(4, { y: 10 })}
-        className="absolute bottom-4 left-4 inline-flex items-center gap-1 text-[10px] text-content-muted"
-      >
-        <Icon name="sparkles" size={12} className="text-brand" />
-        Categories suggested
-      </motion.span>
+      <div className="absolute inset-x-4 bottom-3.5 flex items-center justify-between gap-2">
+        <motion.span
+          {...reveal(4, { y: 10 })}
+          className="inline-flex min-w-0 items-center gap-1 text-[10px] text-content-muted"
+        >
+          <Icon name="sparkles" size={12} className="shrink-0 text-brand" />
+          <span className="truncate">Categories suggested</span>
+        </motion.span>
+        <motion.span
+          {...reveal(5, { y: 10 })}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-[10.5px] font-medium text-brand-fg shadow-soft"
+        >
+          <Icon name="import" size={12} />
+          Import 3 rows
+        </motion.span>
+      </div>
     </Stage>
   );
 }
@@ -271,5 +273,58 @@ export function InsightIllustration() {
         </div>
       </motion.div>
     </Stage>
+  );
+}
+
+const ARROWS = {
+  // Desktop: from step 1 down to the lower step 2, and from step 2 back up to step 3.
+  down: {
+    viewBox: '0 0 80 110',
+    line: 'M3 12 C 20 2, 31 26, 37 44 S 49 84, 73 92',
+    head: 'M63 85 L73 92 L64 100',
+  },
+  up: {
+    viewBox: '0 0 80 110',
+    line: 'M3 94 C 22 104, 31 76, 37 58 S 47 18, 73 15',
+    head: 'M63 8 L73 15 L64 23',
+  },
+  // Phones: a wiggle pointing down to the next step.
+  stack: {
+    viewBox: '0 0 48 72',
+    line: 'M24 3 C 7 17, 41 27, 23 44 S 15 57, 24 62',
+    head: 'M17 54 L24 63 L31 55',
+  },
+} as const;
+
+/**
+ * A hand-drawn-looking connector between steps: an irregular curve with an
+ * open arrowhead, in the brand colour, that draws itself in on first view.
+ */
+export function FlowArrow({ kind, className }: { kind: keyof typeof ARROWS; className?: string }) {
+  const reduce = useReducedMotion();
+  const a = ARROWS[kind];
+  const draw = (delay: number, duration: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { pathLength: 0, opacity: 0 },
+          whileInView: { pathLength: 1, opacity: 1 },
+          viewport: { once: true, amount: 0.8 },
+          transition: { duration, ease: EASE, delay },
+        };
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox={a.viewBox}
+      fill="none"
+      stroke="rgb(var(--brand))"
+      strokeWidth={2.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <motion.path d={a.line} {...draw(0.2, 0.9)} />
+      <motion.path d={a.head} {...draw(1, 0.3)} />
+    </svg>
   );
 }
