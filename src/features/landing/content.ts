@@ -24,7 +24,7 @@ export const STEPS: { title: string; body: string; icon: IconName }[] = [
   },
   {
     title: 'Import and review',
-    body: 'mony recognises the format, suggests categories, and flags duplicates and transfers between your own accounts before anything is saved.',
+    body: 'mony recognises the format, suggests categories and flags transfers between your own accounts, so you check every row before anything is saved.',
     icon: 'import',
   },
   {
@@ -69,7 +69,7 @@ export const FEATURES: { title: string; body: string; icon: IconName }[] = [
 
 export const PRIVACY: string[] = [
   'You never give mony your bank login. It only sees the files you choose to import.',
-  'Every account is kept separate in the database, and automated tests try to break that on every change.',
+  'Every account is kept separate in the database, and automated tests try to break that separation.',
   'Export all of your data, or delete your account and everything in it, yourself, at any time.',
 ];
 
@@ -123,7 +123,7 @@ export const PRICING: PricingTier[] = [
 export const FAQ: { q: string; a: string }[] = [
   {
     q: 'Is it really free?',
-    a: 'Yes. While mony is in testing, every feature is free. When paid plans arrive you can keep using it, and anyone who reserved lifetime access is first in line.',
+    a: 'Yes. While mony is in testing, every feature is free, with no card needed. Anyone who reserves lifetime access will hear first when payments open.',
   },
   {
     q: 'What does $20 get me?',
