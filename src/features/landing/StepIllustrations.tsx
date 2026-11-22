@@ -281,18 +281,18 @@ const ARROWS = {
   down: {
     viewBox: '0 0 80 110',
     line: 'M3 12 C 20 2, 31 26, 37 44 S 49 84, 73 92',
-    head: 'M63 85 L73 92 L64 100',
+    head: 'M66.3 83.9 L73 92 L62.8 94.5',
   },
   up: {
     viewBox: '0 0 80 110',
     line: 'M3 94 C 22 104, 31 76, 37 58 S 47 18, 73 15',
-    head: 'M63 8 L73 15 L64 23',
+    head: 'M63.5 10.5 L73 15 L64.8 21.5',
   },
   // Phones: a wiggle pointing down to the next step.
   stack: {
     viewBox: '0 0 48 72',
-    line: 'M24 3 C 7 17, 41 27, 23 44 S 15 57, 24 62',
-    head: 'M17 54 L24 63 L31 55',
+    line: 'M24 3 C 7 17, 41 27, 23 44 S 22 55, 24 64',
+    head: 'M27.5 54.1 L24 64 L16.6 56.5',
   },
 } as const;
 
