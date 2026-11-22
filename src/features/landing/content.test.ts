@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { FAQ, FEATURES, PRICING, PRIVACY, STEPS } from './content';
+import { CONTACT_URL, FAQ, FEATURES, PRICING, PRIVACY, STEPS } from './content';
 
 /** Phrases for things mony doesn't do (yet). Landing copy must never promise them. */
 const UNBACKED = [
@@ -22,5 +22,19 @@ describe('landing copy', () => {
   it('makes no claims the product cannot back', () => {
     const offending = allCopy.filter((text) => UNBACKED.some((re) => re.test(text)));
     expect(offending).toEqual([]);
+  });
+});
+
+describe('contact', () => {
+  it('points to the Upwork profile', () => {
+    expect(CONTACT_URL).toBe('https://www.upwork.com/freelancers/~0123dda34004da49e6');
+  });
+
+  it('routes the paid and custom plans to it, and nothing to email', () => {
+    const byName = Object.fromEntries(PRICING.map((p) => [p.name, p.href]));
+    expect(byName.Lifetime).toBe(CONTACT_URL);
+    expect(byName.Custom).toBe(CONTACT_URL);
+    expect(PRICING.some((p) => p.href.startsWith('mailto:'))).toBe(false);
+    expect(allCopy.some((text) => /\bemail\b/i.test(text))).toBe(false);
   });
 });

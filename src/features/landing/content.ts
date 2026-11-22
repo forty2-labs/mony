@@ -1,15 +1,11 @@
 import type { IconName } from '@/shared/components/Icon';
 
 /**
- * Where "Reserve lifetime access" and "Contact us" go. A placeholder until the
- * real address is decided: change it here and every link, label and copy
- * button on the landing page follows.
+ * Where every contact on the landing page goes ("Reserve lifetime access",
+ * "Contact us", the line under pricing and the footer): the team's Upwork
+ * profile. Change it here and every link follows.
  */
-export const CONTACT_EMAIL = 'contact@example.com';
-
-export function mailtoHref(subject: string): string {
-  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}`;
-}
+export const CONTACT_URL = 'https://www.upwork.com/freelancers/~0123dda34004da49e6';
 
 /*
  * Landing page copy. Every claim here must be true of the product today: no
@@ -83,7 +79,7 @@ export interface PricingTier {
   note: string;
   points: string[];
   cta: string;
-  /** Internal route (starts with "/") or an external/mailto link. */
+  /** Internal route (starts with "/") or an external link, opened in a new tab. */
   href: string;
   highlight?: boolean;
 }
@@ -105,7 +101,7 @@ export const PRICING: PricingTier[] = [
     note: 'Lifetime access, no subscription',
     points: ['Everything in Free, for good', 'Pay once, never again', 'Every update included'],
     cta: 'Reserve lifetime access',
-    href: mailtoHref('Reserve lifetime access'),
+    href: CONTACT_URL,
     highlight: true,
   },
   {
@@ -119,7 +115,7 @@ export const PRICING: PricingTier[] = [
       'Your data never leaves your hands',
     ],
     cta: 'Contact us',
-    href: mailtoHref('Custom mony deployment'),
+    href: CONTACT_URL,
   },
 ];
 
@@ -130,7 +126,7 @@ export const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'What does $20 get me?',
-    a: 'Lifetime access to mony, paid once, with no subscription and every future update included. Payments aren’t open yet, so for now the button lets you reserve it by email.',
+    a: 'Lifetime access to mony, paid once, with no subscription and every future update included. Payments aren’t open yet, so for now message us on Upwork to reserve it.',
   },
   {
     q: 'Do you connect to my bank?',
@@ -146,6 +142,6 @@ export const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'Can I run mony myself?',
-    a: 'Yes, as a custom deployment set up on your own machine. Get in touch and we’ll talk through what you need.',
+    a: 'Yes, as a custom deployment set up on your own machine. Message us on Upwork and we’ll talk through what you need.',
   },
 ];

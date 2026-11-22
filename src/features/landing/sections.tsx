@@ -1,5 +1,6 @@
-import { type CSSProperties, type ReactNode, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useId, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 import { Icon } from '@/shared/components/Icon';
 import { LogoMark, Wordmark } from '@/shared/components/Logo';
@@ -7,7 +8,7 @@ import { cn } from '@/shared/lib/cn';
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
 import {
-  CONTACT_EMAIL,
+  CONTACT_URL,
   FAQ,
   FEATURES,
   PRICING,
@@ -16,7 +17,7 @@ import {
   STEPS,
   type StepScene,
 } from './content';
-import { copyText } from './copyText';
+import { EASE, useReveal } from './reveal';
 import {
   ExportIllustration,
   FlowArrow,
@@ -40,9 +41,10 @@ function Section({
   intro?: string;
   children: ReactNode;
 }) {
+  const reveal = useReveal();
   return (
     <section id={id} className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6 sm:py-28">
-      <div className="mb-12 max-w-2xl">
+      <motion.div {...reveal(0, { amount: 0.6 })} className="mb-12 max-w-2xl">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-content-muted">
           {eyebrow}
         </p>
@@ -50,13 +52,13 @@ function Section({
           {title}
         </h2>
         {intro ? <p className="mt-4 text-lg leading-relaxed text-content-muted">{intro}</p> : null}
-      </div>
+      </motion.div>
       {children}
     </section>
   );
 }
 
-/** An internal route renders as a router link; anything else (mailto) as a plain link. */
+/** An internal route renders as a router link; an external link opens in a new tab. */
 function CtaLink({
   href,
   className,
@@ -71,7 +73,7 @@ function CtaLink({
       {children}
     </Link>
   ) : (
-    <a href={href} className={className}>
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
       {children}
     </a>
   );
@@ -125,6 +127,7 @@ export function HowItWorks() {
 }
 
 export function Features() {
+  const reveal = useReveal();
   return (
     <Section
       id="features"
@@ -133,14 +136,14 @@ export function Features() {
       intro="Built for everyday personal finance in pounds, with room for the other currencies life brings."
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES.map((f) => (
-          <div key={f.title} className="card p-6">
+        {FEATURES.map((f, i) => (
+          <motion.div key={f.title} {...reveal(i, { from: { y: 24 } })} className="card p-6">
             <span className="icon-badge mb-5 h-11 w-11">
               <Icon name={f.icon} size={20} />
             </span>
             <h3 className="text-lg font-semibold tracking-tight">{f.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-content-muted">{f.body}</p>
-          </div>
+          </motion.div>
         ))}
       </div>
     </Section>
@@ -148,6 +151,7 @@ export function Features() {
 }
 
 export function Privacy() {
+  const reveal = useReveal();
   return (
     <Section
       eyebrow="Privacy"
@@ -155,23 +159,32 @@ export function Privacy() {
       intro="No bank logins, and nothing you can’t take with you."
     >
       <ul className="grid gap-4 md:grid-cols-3">
-        {PRIVACY.map((p) => (
-          <li key={p} className="flex gap-4 rounded-3xl border border-border p-6">
+        {PRIVACY.map((p, i) => (
+          <motion.li
+            key={p}
+            {...reveal(i, { from: { x: -24 }, step: 0.12 })}
+            className="flex gap-4 rounded-3xl border border-border p-6"
+          >
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-success/15 text-success">
               <Icon name="check" size={16} />
             </span>
             <p className="text-sm leading-relaxed">{p}</p>
-          </li>
+          </motion.li>
         ))}
       </ul>
     </Section>
   );
 }
 
-function PriceCard({ tier }: { tier: PricingTier }) {
+function PriceCard({ tier, index }: { tier: PricingTier; index: number }) {
   const hi = tier.highlight;
+  const reveal = useReveal();
   return (
-    <div className={cn('flex flex-col p-7', hi ? 'card-feature' : 'card')}>
+    <motion.div
+      // The highlighted plan arrives last and grows in slightly, to draw the eye.
+      {...reveal(hi ? 3 : index, { from: hi ? { y: 32, scale: 0.96 } : { y: 32 }, step: 0.1 })}
+      className={cn('flex flex-col p-7', hi ? 'card-feature' : 'card')}
+    >
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">{tier.name}</h3>
         {hi ? (
@@ -221,38 +234,28 @@ function PriceCard({ tier }: { tier: PricingTier }) {
       >
         {tier.cta}
       </CtaLink>
-    </div>
+    </motion.div>
   );
 }
 
 function ContactLine() {
-  const emailRef = useRef<HTMLSpanElement>(null);
-  const [state, setState] = useState<'idle' | 'copied' | 'selected'>('idle');
-
-  const onCopy = async () => {
-    const ok = await copyText(CONTACT_EMAIL, emailRef.current);
-    setState(ok ? 'copied' : 'selected');
-    window.setTimeout(() => setState('idle'), 2000);
-  };
-
+  const reveal = useReveal();
   return (
-    <div className="mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-content-muted">
-      <span>Questions first? Write to</span>
-      <span ref={emailRef} className="select-all font-medium text-content">
-        {CONTACT_EMAIL}
-      </span>
-      <button
-        type="button"
-        onClick={() => void onCopy()}
-        className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium text-content transition hover:bg-surface-2"
+    <motion.p
+      {...reveal(4, { step: 0.1 })}
+      className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-content-muted"
+    >
+      Questions first?
+      <a
+        href={CONTACT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 font-medium text-content underline decoration-border underline-offset-4 transition hover:decoration-content"
       >
-        <Icon name={state === 'copied' ? 'check' : 'duplicate'} size={13} />
-        {state === 'copied' ? 'Copied' : state === 'selected' ? 'Selected, press copy' : 'Copy'}
-      </button>
-      <span aria-live="polite" className="sr-only">
-        {state === 'copied' ? 'Email address copied' : ''}
-      </span>
-    </div>
+        Message us on Upwork
+        <Icon name="send" size={13} />
+      </a>
+    </motion.p>
   );
 }
 
@@ -265,8 +268,8 @@ export function Pricing() {
       intro="No subscription to remember. Use everything free while mony is in testing, keep it for good with one payment, or have your own copy set up."
     >
       <div className="grid gap-4 lg:grid-cols-3">
-        {PRICING.map((t) => (
-          <PriceCard key={t.name} tier={t} />
+        {PRICING.map((t, i) => (
+          <PriceCard key={t.name} tier={t} index={i} />
         ))}
       </div>
       <ContactLine />
@@ -274,22 +277,57 @@ export function Pricing() {
   );
 }
 
+function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
+  const [open, setOpen] = useState(false);
+  const reduce = useReducedMotion();
+  const reveal = useReveal();
+  const panelId = useId();
+  return (
+    <motion.div {...reveal(index, { from: { y: 12 }, step: 0.06 })} className="px-6">
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((o) => !o)}
+          className="flex w-full items-center justify-between gap-4 py-5 text-left text-base font-medium"
+        >
+          {q}
+          <motion.span
+            animate={{ rotate: open ? 180 : 0 }}
+            transition={{ duration: reduce ? 0 : 0.3, ease: EASE }}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-2 text-content-muted"
+          >
+            <Icon name="chevron-down" size={16} />
+          </motion.span>
+        </button>
+      </h3>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            id={panelId}
+            role="region"
+            key="panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.35, ease: EASE }}
+            className="overflow-hidden"
+          >
+            <p className="max-w-3xl pb-5 text-sm leading-relaxed text-content-muted">{a}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
 export function Faq() {
   return (
     <Section id="faq" eyebrow="FAQ" title="Questions, answered plainly.">
       <div className="divide-y divide-border rounded-3xl border border-border bg-surface">
-        {FAQ.map((f) => (
-          <details key={f.q} className="group px-6 py-5">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium marker:hidden [&::-webkit-details-marker]:hidden">
-              {f.q}
-              <Icon
-                name="chevron-down"
-                size={18}
-                className="shrink-0 text-content-muted transition group-open:rotate-180"
-              />
-            </summary>
-            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-content-muted">{f.a}</p>
-          </details>
+        {FAQ.map((f, i) => (
+          <FaqItem key={f.q} q={f.q} a={f.a} index={i} />
         ))}
       </div>
     </Section>
@@ -349,7 +387,14 @@ export function Footer() {
       </div>
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-4 pb-10 text-xs text-content-muted sm:px-6">
         <span>© {new Date().getFullYear()} mony</span>
-        <span>{CONTACT_EMAIL}</span>
+        <a
+          href={CONTACT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-content"
+        >
+          Contact us on Upwork
+        </a>
       </div>
     </footer>
   );

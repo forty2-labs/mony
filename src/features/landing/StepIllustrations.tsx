@@ -4,6 +4,8 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Icon } from '@/shared/components/Icon';
 import { cn } from '@/shared/lib/cn';
 
+import { EASE, useReveal } from './reveal';
+
 /*
  * Small, live illustrations for the "How it works" steps. They're built from
  * the app's own vocabulary (rows, category chips, a trend line, a budget bar)
@@ -12,20 +14,11 @@ import { cn } from '@/shared/lib/cn';
  * with reduced motion it simply appears.
  */
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-
-/** Entrance props for one element, staggered by `i`; inert under reduced motion. */
-function useReveal() {
-  const reduce = useReducedMotion();
+/** Illustration reveals: quicker and tighter than the page sections. */
+function useSceneReveal() {
+  const reveal = useReveal();
   return (i: number, from: { x?: number; y?: number } = { y: 8 }) =>
-    reduce
-      ? {}
-      : {
-          initial: { opacity: 0, ...from },
-          whileInView: { opacity: 1, x: 0, y: 0 },
-          viewport: { once: true, amount: 0.6 },
-          transition: { duration: 0.5, ease: EASE, delay: 0.15 + i * 0.09 },
-        };
+    reveal(i, { from, delay: 0.15, step: 0.09, amount: 0.6 });
 }
 
 function Stage({ children }: { children: ReactNode }) {
@@ -56,7 +49,7 @@ const CSV_ROWS: [string, string, string][] = [
 
 /** Step 1: a CSV statement downloading from "any bank". */
 export function ExportIllustration() {
-  const reveal = useReveal();
+  const reveal = useSceneReveal();
   return (
     <Stage>
       <div className="absolute left-4 top-4 flex flex-wrap gap-1.5">
@@ -124,7 +117,7 @@ const REVIEW_ROWS: {
 
 /** Step 2: review rows with categories filled in and a transfer set aside. */
 export function ReviewIllustration() {
-  const reveal = useReveal();
+  const reveal = useSceneReveal();
   return (
     <Stage>
       <div className="absolute inset-x-4 top-4 space-y-1.5">
@@ -191,7 +184,7 @@ export function ReviewIllustration() {
 /** Step 3: a trend line drawing in and a budget filling up. */
 export function InsightIllustration() {
   const reduce = useReducedMotion();
-  const reveal = useReveal();
+  const reveal = useSceneReveal();
   const draw = (delay: number) =>
     reduce
       ? {}
